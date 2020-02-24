@@ -3,8 +3,8 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SplitMenuButton?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import org.fxmisc.richtext.CodeArea?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uaa.idejavafx.PrimaryController">
    <children>
       <SplitPane dividerPositions="0.12311557788944724, 0.8040201005025126" layoutX="23.0" layoutY="14.0" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
@@ -24,10 +24,10 @@
                     <menus>
                       <Menu mnemonicParsing="false" text="Archivo">
                         <items>
-                          <MenuItem mnemonicParsing="false" text="Nuevo" />
-                              <MenuItem mnemonicParsing="false" text="Abrir..." />
-                              <MenuItem mnemonicParsing="false" text="Guardar" />
-                              <MenuItem mnemonicParsing="false" text="Guardar Como..." />
+                          <MenuItem mnemonicParsing="false" onAction="#openNewFile" text="Nuevo" />
+                              <MenuItem mnemonicParsing="false" onAction="#openFile" text="Abrir..." />
+                              <MenuItem mnemonicParsing="false" onAction="#saveFile" text="Guardar" />
+                              <MenuItem mnemonicParsing="false" onAction="#saveFileAs" text="Guardar Como..." />
                         </items>
                       </Menu>
                       <Menu mnemonicParsing="false" text="Editar">
@@ -50,7 +50,7 @@
                   </MenuBar>
                   <ToolBar layoutY="22.0" prefHeight="37.0" prefWidth="598.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="22.0">
                     <items>
-                      <Button mnemonicParsing="false">
+                      <Button fx:id="newFile" mnemonicParsing="false" onAction="#openNewFile">
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
@@ -58,7 +58,7 @@
                                  </image></ImageView>
                            </graphic>
                         </Button>
-                        <Button mnemonicParsing="false">
+                        <Button fx:id="save" mnemonicParsing="false" onAction="#saveFile">
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
@@ -66,7 +66,7 @@
                                  </image></ImageView>
                            </graphic>
                         </Button>
-                        <Button mnemonicParsing="false">
+                        <Button fx:id="open" mnemonicParsing="false" onAction="#openFile">
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
@@ -74,7 +74,7 @@
                                  </image></ImageView>
                            </graphic>
                         </Button>
-                        <Button mnemonicParsing="false">
+                        <Button mnemonicParsing="false" onAction="#undo">
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
@@ -82,7 +82,7 @@
                                  </image></ImageView>
                            </graphic>
                         </Button>
-                        <Button mnemonicParsing="false">
+                        <Button mnemonicParsing="false" onAction="#redo">
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
@@ -90,10 +90,10 @@
                                  </image></ImageView>
                            </graphic>
                         </Button>
-                        <MenuButton mnemonicParsing="false">
+                        <SplitMenuButton mnemonicParsing="false" onAction="#run" text="run">
                           <items>
-                            <MenuItem mnemonicParsing="false" text="Compilar" />
-                            <MenuItem mnemonicParsing="false" text="Debug" />
+                            <MenuItem mnemonicParsing="false" text="Action 1" />
+                            <MenuItem mnemonicParsing="false" text="Action 2" />
                           </items>
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
@@ -102,7 +102,7 @@
                                  </image>
                               </ImageView>
                            </graphic>
-                        </MenuButton>
+                        </SplitMenuButton>
                     </items>
                   </ToolBar>
                </children>
