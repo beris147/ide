@@ -2,17 +2,25 @@ package com.uaa.idejavafx.controllers;
 
 import com.uaa.classes.FileHelper;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Tab;
 import org.fxmisc.richtext.*;
 
-public class PrimaryController {
+public class PrimaryController implements Initializable {
     @FXML
     private CodeArea codeText;
     @FXML
     private Tab tabTitle;
     
     private final FileHelper fileHelper = new FileHelper();
+    
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        this.codeText.setParagraphGraphicFactory(LineNumberFactory.get(this.codeText));
+    }
     
     private void setTitle(){
         if(this.fileHelper.getFile() != null){
