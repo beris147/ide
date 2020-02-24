@@ -33,7 +33,7 @@ public class App extends Application {
     }
 
     public static void mymain(String[] args) {
-        launch();
+        launch(args);
     }
 
 }
