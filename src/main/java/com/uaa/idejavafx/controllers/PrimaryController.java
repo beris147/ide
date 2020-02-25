@@ -36,12 +36,20 @@ public class PrimaryController implements Initializable {
         }
     }
     
+    private void showCoords() {
+        TwoDimensional.Position pos = this.codeText.offsetToPosition(this.codeText.getCaretPosition(), TwoDimensional.Bias.Forward);
+
+        this.rowLabel.setText("Linea: " + (pos.getMajor() + 1));
+        this.colLabel.setText("Columna: " + (pos.getMinor() + 1));
+    }
+    
     @FXML
     private void openNewFile() throws IOException {
         this.fileHelper.setFile(null);
         this.setTitle();
         this.codeText.replaceText("");
         this.saveFile();
+        this.showCoords();
     }
 
     @FXML
@@ -63,16 +71,19 @@ public class PrimaryController implements Initializable {
             this.fileHelper.writeContent(codeText);
         }
         this.setTitle();
+        this.showCoords();
     }
     
     @FXML
     private void undo() throws IOException {
         this.codeText.undo();
+        this.showCoords();
     }
     
     @FXML
     private void redo() throws IOException {
         this.codeText.redo();
+        this.showCoords();
     }
     
     @FXML
@@ -82,9 +93,6 @@ public class PrimaryController implements Initializable {
     
     @FXML
     private void getCaretPosition() {
-        TwoDimensional.Position pos = this.codeText.offsetToPosition(this.codeText.getCaretPosition(), TwoDimensional.Bias.Forward);
-
-        this.rowLabel.setText("Linea: " + (pos.getMajor() + 1));
-        this.colLabel.setText("Columna: " + (pos.getMinor() + 1));
+        this.showCoords();
     }
 }
