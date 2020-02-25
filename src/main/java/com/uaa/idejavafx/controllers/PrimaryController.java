@@ -6,14 +6,20 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import org.fxmisc.richtext.*;
+import org.fxmisc.richtext.model.TwoDimensional;
 
 public class PrimaryController implements Initializable {
     @FXML
     private CodeArea codeText;
     @FXML
     private Tab tabTitle;
+    @FXML
+    private Label rowLabel;
+    @FXML
+    private Label colLabel;
     
     private final FileHelper fileHelper = new FileHelper();
     
@@ -30,12 +36,20 @@ public class PrimaryController implements Initializable {
         }
     }
     
+    private void showCoords() {
+        TwoDimensional.Position pos = this.codeText.offsetToPosition(this.codeText.getCaretPosition(), TwoDimensional.Bias.Forward);
+
+        this.rowLabel.setText("Linea: " + (pos.getMajor() + 1));
+        this.colLabel.setText("Columna: " + (pos.getMinor() + 1));
+    }
+    
     @FXML
     private void openNewFile() throws IOException {
         this.fileHelper.setFile(null);
         this.setTitle();
         this.codeText.replaceText("");
         this.saveFile();
+        this.showCoords();
     }
 
     @FXML
@@ -57,20 +71,28 @@ public class PrimaryController implements Initializable {
             this.fileHelper.writeContent(codeText);
         }
         this.setTitle();
+        this.showCoords();
     }
     
     @FXML
     private void undo() throws IOException {
         this.codeText.undo();
+        this.showCoords();
     }
     
     @FXML
     private void redo() throws IOException {
         this.codeText.redo();
+        this.showCoords();
     }
     
     @FXML
     private void run() throws IOException {
         
+    }
+    
+    @FXML
+    private void getCaretPosition() {
+        this.showCoords();
     }
 }

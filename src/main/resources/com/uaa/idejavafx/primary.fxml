@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -122,6 +124,16 @@
                               </ImageView>
                            </graphic>
                         </SplitMenuButton>
+                        <Label fx:id="rowLabel" text="Linea: -">
+                           <padding>
+                              <Insets left="20.0" />
+                           </padding>
+                        </Label>
+                        <Label fx:id="colLabel" text="Columna: -">
+                           <padding>
+                              <Insets left="15.0" />
+                           </padding>
+                        </Label>
                     </items>
                   </ToolBar>
                </children>
@@ -139,7 +151,7 @@
                                     <content>
                                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <CodeArea fx:id="codeText" prefHeight="227.2" prefWidth="407.2" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                <CodeArea fx:id="codeText" onKeyReleased="#getCaretPosition" onMouseClicked="#getCaretPosition" prefHeight="227.2" prefWidth="407.2" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                              </children>
                                           </AnchorPane>
                                     </content>
