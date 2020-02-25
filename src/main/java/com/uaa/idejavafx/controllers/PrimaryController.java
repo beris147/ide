@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Tab;
 import org.fxmisc.richtext.*;
+import org.fxmisc.richtext.model.TwoDimensional;
 
 public class PrimaryController implements Initializable {
     @FXML
@@ -72,5 +73,11 @@ public class PrimaryController implements Initializable {
     @FXML
     private void run() throws IOException {
         
+    }
+    
+    @FXML
+    private void getCaretPosition() {
+        TwoDimensional.Position pos = this.codeText.offsetToPosition(this.codeText.getCaretPosition(), TwoDimensional.Bias.Forward);
+        //System.out.println((pos.getMajor() + 1)  + " - "  + (pos.getMinor() + 1));
     }
 }
