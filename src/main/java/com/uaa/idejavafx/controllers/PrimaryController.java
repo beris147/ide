@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import org.fxmisc.richtext.*;
 import org.fxmisc.richtext.model.TwoDimensional;
@@ -15,6 +16,10 @@ public class PrimaryController implements Initializable {
     private CodeArea codeText;
     @FXML
     private Tab tabTitle;
+    @FXML
+    private Label rowLabel;
+    @FXML
+    private Label colLabel;
     
     private final FileHelper fileHelper = new FileHelper();
     
@@ -78,6 +83,8 @@ public class PrimaryController implements Initializable {
     @FXML
     private void getCaretPosition() {
         TwoDimensional.Position pos = this.codeText.offsetToPosition(this.codeText.getCaretPosition(), TwoDimensional.Bias.Forward);
-        //System.out.println((pos.getMajor() + 1)  + " - "  + (pos.getMinor() + 1));
+
+        this.rowLabel.setText("Linea: " + (pos.getMajor() + 1));
+        this.colLabel.setText("Columna: " + (pos.getMinor() + 1));
     }
 }
