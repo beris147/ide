@@ -25,6 +25,8 @@ public class PrimaryController implements Initializable {
     private Label totRows;
     @FXML
     private Label totCols;
+    @FXML
+    private Label infoLabel;
     
     private final FileHelper fileHelper = new FileHelper();
     
@@ -69,6 +71,9 @@ public class PrimaryController implements Initializable {
     private void saveFile() throws IOException {
         this.fileHelper.saveContent(codeText);
         this.setTitle();
+        if(this.fileHelper.getFile() != null){
+            this.infoLabel.setText("\tArchivo guardado con éxito");
+        }
     }
     
     @FXML
