@@ -3,6 +3,7 @@ package com.uaa.idejavafx.controllers;
 import com.uaa.classes.FileHelper;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -20,6 +21,10 @@ public class PrimaryController implements Initializable {
     private Label rowLabel;
     @FXML
     private Label colLabel;
+    @FXML
+    private Label totRows;
+    @FXML
+    private Label totCols;
     
     private final FileHelper fileHelper = new FileHelper();
     
@@ -39,8 +44,16 @@ public class PrimaryController implements Initializable {
     private void showCoords() {
         TwoDimensional.Position pos = this.codeText.offsetToPosition(this.codeText.getCaretPosition(), TwoDimensional.Bias.Forward);
 
-        this.rowLabel.setText("Linea: " + (pos.getMajor() + 1));
-        this.colLabel.setText("Columna: " + (pos.getMinor() + 1));
+        this.rowLabel.setText("Ln: " + (pos.getMajor() + 1));
+        this.colLabel.setText("Col: " + (pos.getMinor() + 1));
+    }
+    
+    private void showTotal() {
+        String [] rows = this.codeText.getText().split("\n");
+        int cols = Arrays.asList(rows).stream().map(String::length).max(Integer::compareTo).get();
+
+        this.totRows.setText("Lineas: " + rows.length);
+        this.totCols.setText("Columnas: " + cols);
     }
     
     @FXML
@@ -94,5 +107,6 @@ public class PrimaryController implements Initializable {
     @FXML
     private void getCaretPosition() {
         this.showCoords();
+        this.showTotal();
     }
 }
