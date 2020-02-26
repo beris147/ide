@@ -15,9 +15,11 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
 <?import org.fxmisc.richtext.CodeArea?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uaa.idejavafx.controllers.PrimaryController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uaa.idejavafx.controllers.PrimaryController">
    <children>
       <SplitPane dividerPositions="0.12311557788944724, 0.8040201005025126" layoutX="23.0" layoutY="14.0" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
@@ -124,16 +126,6 @@
                               </ImageView>
                            </graphic>
                         </SplitMenuButton>
-                        <Label fx:id="rowLabel" text="Linea: -">
-                           <padding>
-                              <Insets left="20.0" />
-                           </padding>
-                        </Label>
-                        <Label fx:id="colLabel" text="Columna: -">
-                           <padding>
-                              <Insets left="15.0" />
-                           </padding>
-                        </Label>
                     </items>
                   </ToolBar>
                </children>
@@ -182,7 +174,43 @@
                </children></AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                <children>
-                  <TabPane layoutX="-32.0" layoutY="-86.0" prefHeight="70.4" prefWidth="598.4" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <Pane prefHeight="26.0" prefWidth="598.0">
+                     <children>
+                        <Label fx:id="totRows" layoutX="163.0" text="Lineas: -">
+                           <font>
+                              <Font size="11.0" />
+                           </font>
+                           <padding>
+                              <Insets left="2.0" top="4.0" />
+                           </padding>
+                        </Label>
+                        <Label fx:id="totCols" layoutX="240.0" text="Columnas: -">
+                           <font>
+                              <Font size="11.0" />
+                           </font>
+                           <padding>
+                              <Insets left="2.0" top="4.0" />
+                           </padding>
+                        </Label>
+                        <Label fx:id="rowLabel" layoutX="10.0" text="Ln: -">
+                           <padding>
+                              <Insets left="2.0" top="4.0" />
+                           </padding>
+                           <font>
+                              <Font size="11.0" />
+                           </font>
+                        </Label>
+                        <Label fx:id="colLabel" ellipsisString="" layoutX="70.0" text="Col: -">
+                           <padding>
+                              <Insets left="2.0" top="4.0" />
+                           </padding>
+                           <font>
+                              <Font size="11.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </Pane>
+                  <TabPane layoutX="-32.0" layoutY="-86.0" prefHeight="70.4" prefWidth="598.4" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
                     <tabs>
                       <Tab text="Errores">
                         <content>
