@@ -6,16 +6,30 @@
     -fx-text-fill: #d8d8d8;
 }
 
-.menu-bar .menu-button:hover, .menu-bar .menu-button:focused, .menu-bar .menu-button:showing {
-    -fx-background-color: #272727;
-    -fx-opacity: 0.5;
-    -fx-text-fill: white;
+.menu-bar .menu-button {
+    -fx-margin: 0.33333em 1.083333em 1.666667em 0.083333em;
+    -fx-border-width: 0 0 2 0;
 }
 
-.menu-item {
+.menu-bar .menu-button:hover, .menu-bar .menu-button:focused, .menu-bar .menu-button:showing {
     -fx-background-color: #272727;
-    -fx-padding: 0em 0em 0em 0em;
     -fx-text-fill: #d8d8d8;
+    -fx-background-radius: 6 6 6 6;
+}
+
+.menu-item .label {
+    -fx-text-fill: #d8d8d8;
+}
+
+.menu-item:focused {
+    -fx-background-radius: 3;
+}
+
+.context-menu {
+    -fx-background-color: #272727;
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 0 6 6 6, 0 5 5 5, 0 4 4 4;
+    -fx-padding: 0.333333em 0.083333em 0.666667em 0.083333em;
 }
 
 .button, .split-menu-button {
@@ -26,7 +40,6 @@
 }
 
 .button:hover {
-    -fx-background-color: #e6e6e6;
     -fx-focus-color: none;
 }
 
@@ -55,7 +68,7 @@
 
 }
 
-.tab-pane .tab:hover, .button:hover {
+.tab-pane .tab:hover, .button:hover, .menu-item:focused {
     -fx-background-color: #414141;
     -fx-cursor: hand;
 }
@@ -63,7 +76,7 @@
 .tab-pane .tab:selected
 {
     -fx-background-color: #272727;
-    -fx-border-width: 0 0 1 0;
+    -fx-border-width: 0 0 2 0;
     -fx-border-color: #bc0404;
 }
 
