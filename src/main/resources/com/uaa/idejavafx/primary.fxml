@@ -23,11 +23,11 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uaa.idejavafx.controllers.PrimaryController">
    <children>
-      <SplitPane dividerPositions="0.12311557788944724, 0.8040201005025126" layoutX="23.0" layoutY="14.0" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <SplitPane dividerPositions="0.12311557788944724, 0.8040201005025126" layoutX="23.0" layoutY="14.0" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" stylesheets="@../styles/main.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
           <AnchorPane maxHeight="-Infinity" prefHeight="20.0" SplitPane.resizableWithParent="false">
                <children>
-                  <MenuBar layoutX="-19.0" layoutY="8.0" prefHeight="33.6" prefWidth="598.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <MenuBar layoutX="-19.0" layoutY="8.0" prefHeight="60.0" prefWidth="598.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <menus>
                       <Menu mnemonicParsing="false" text="Archivo">
                         <items>
@@ -73,13 +73,13 @@
                       </Menu>
                     </menus>
                   </MenuBar>
-                  <ToolBar layoutY="22.0" prefHeight="37.0" prefWidth="598.0" styleClass="bg-primary" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="22.0">
+                  <ToolBar layoutY="22.0" prefHeight="37.0" prefWidth="598.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="22.0">
                     <items>
                       <Button fx:id="newFile" mnemonicParsing="false" onAction="#openNewFile">
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../images/iconfinder_new-document-empty-file-sheet_2931173.png" />
+                                    <Image url="@../images/file-solid.png" />
                                  </image></ImageView>
                            </graphic>
                         </Button>
@@ -87,7 +87,7 @@
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../images/iconfinder_158-Save_2123968.png" />
+                                    <Image url="@../images/save-solid.png" />
                                  </image></ImageView>
                            </graphic>
                         </Button>
@@ -95,7 +95,7 @@
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../images/iconfinder_folder-open-storage-file-organize_3209339.png" />
+                                    <Image url="@../images/folder-open-solid.png" />
                                  </image></ImageView>
                            </graphic>
                         </Button>
@@ -103,7 +103,7 @@
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../images/iconfinder_Arrow_Back_Left_1063894.png" />
+                                    <Image url="@../images/undo-alt-solid.png" />
                                  </image></ImageView>
                            </graphic>
                         </Button>
@@ -111,7 +111,7 @@
                            <graphic>
                               <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
                                  <image>
-                                    <Image url="@../images/iconfinder_Arrow_Back_Right_1063893.png" />
+                                    <Image url="@../images/redo-alt-solid.png" />
                                  </image></ImageView>
                            </graphic>
                         </Button>
@@ -149,7 +149,7 @@
                                     <content>
                                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <CodeArea fx:id="codeText" onKeyReleased="#getCaretPosition" onMouseClicked="#getCaretPosition" prefHeight="227.2" prefWidth="407.2" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                <CodeArea fx:id="codeText" onKeyReleased="#getCaretPosition" onMouseClicked="#getCaretPosition" prefHeight="227.2" prefWidth="407.2" styleClass="codePrimary" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                              </children>
                                           </AnchorPane>
                                     </content>
@@ -165,7 +165,7 @@
                                     <content>
                                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <CodeArea prefHeight="301.6" prefWidth="184.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                <CodeArea disable="true" prefHeight="301.6" prefWidth="184.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                              </children></AnchorPane>
                                     </content>
                                   </Tab>
