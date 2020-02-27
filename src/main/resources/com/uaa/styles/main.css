@@ -51,17 +51,15 @@
     -fx-opacity: 0;
 }
 
-.tab-pane
-{
+.tab-pane {
     -fx-tab-min-width:90px;
 }
 
-.tab{
+.tab {
     -fx-background-insets: 0 1 0 1,0,0;
 }
 
-.tab-pane .tab
-{
+.tab-pane .tab {
     /*-fx-background-color: #e6e6e6;*/
     -fx-background-color: #3c3c3c;
     -fx-focus-color: none;
@@ -73,8 +71,7 @@
     -fx-cursor: hand;
 }
 
-.tab-pane .tab:selected
-{
+.tab-pane .tab:selected {
     -fx-background-color: #272727;
     -fx-border-width: 0 0 2 0;
     -fx-border-color: #bc0404;
@@ -90,6 +87,14 @@
 .tab:selected .tab-label { 
     -fx-alignment: CENTER;
     -fx-text-fill: #d8d8d8;
+}
+
+.tab-down-button {
+    -fx-background-color: #272727;
+}
+
+.arrow {
+    -fx-background-color: #d8d8d8;
 }
 
 .code-area {
