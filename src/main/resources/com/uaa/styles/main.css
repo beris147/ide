@@ -1,0 +1,100 @@
+.menu-bar, .tool-bar, .split-pane {
+    -fx-background-color: #323232;
+}
+
+.label {
+    -fx-text-fill: #d8d8d8;
+}
+
+.menu-bar .menu-button:hover, .menu-bar .menu-button:focused, .menu-bar .menu-button:showing {
+    -fx-background-color: #272727;
+    -fx-opacity: 0.5;
+    -fx-text-fill: white;
+}
+
+.menu-item {
+    -fx-background-color: #272727;
+    -fx-padding: 0em 0em 0em 0em;
+    -fx-text-fill: #d8d8d8;
+}
+
+.button, .split-menu-button {
+    -fx-background-radius: 3;
+    -fx-background-color: #3c3c3c;
+    -fx-text-fill: #d8d8d8;
+    -fx-background-insets: 0 0 0 0, 0, 1, 2;
+}
+
+.button:hover {
+    -fx-background-color: #e6e6e6;
+    -fx-focus-color: none;
+}
+
+.split-pane > .split-pane-divider {
+   -fx-background-color: transparent;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+}
+
+.tab-pane
+{
+    -fx-tab-min-width:90px;
+}
+
+.tab{
+    -fx-background-insets: 0 1 0 1,0,0;
+}
+
+.tab-pane .tab
+{
+    /*-fx-background-color: #e6e6e6;*/
+    -fx-background-color: #3c3c3c;
+    -fx-focus-color: none;
+
+}
+
+.tab-pane .tab:hover, .button:hover {
+    -fx-background-color: #414141;
+    -fx-cursor: hand;
+}
+
+.tab-pane .tab:selected
+{
+    -fx-background-color: #272727;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #bc0404;
+}
+
+.tab .tab-label { 
+    -fx-alignment: CENTER;
+    -fx-text-fill: #828282;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.tab:selected .tab-label { 
+    -fx-alignment: CENTER;
+    -fx-text-fill: #d8d8d8;
+}
+
+.code-area {
+    -fx-background-color: #616161;
+    -fx-background-radius: 3;
+}
+
+.code-area .text {
+    -fx-fill: #d8d8d8;
+    -fx-font-weight: bold;
+    -fx-font-size: 14;
+}
+
+.codePrimary .paragraph-box:has-caret {
+    -fx-background-color: #3c3c3c;
+}
+
+.lineno {
+    -fx-background-color: #bc0404;
+    -fx-text-fill: #d8d8d8;
+}
