@@ -18,13 +18,9 @@ public class PrimaryController implements Initializable {
     @FXML
     private Tab tabTitle;
     @FXML
-    private Label rowLabel;
+    private Label currentLabel;
     @FXML
-    private Label colLabel;
-    @FXML
-    private Label totRows;
-    @FXML
-    private Label totCols;
+    private Label totalLabel;
     @FXML
     private Label infoLabel;
     
@@ -46,16 +42,14 @@ public class PrimaryController implements Initializable {
     private void showCoords() {
         TwoDimensional.Position pos = this.codeText.offsetToPosition(this.codeText.getCaretPosition(), TwoDimensional.Bias.Forward);
 
-        this.rowLabel.setText("Ln: " + (pos.getMajor() + 1));
-        this.colLabel.setText("Col: " + (pos.getMinor() + 1));
+        this.currentLabel.setText("Ln: " + (pos.getMajor() + 1) + ", Col: " + (pos.getMinor() + 1));
     }
     
     private void showTotal() {
         String [] rows = this.codeText.getText().split("\n");
         int cols = Arrays.asList(rows).stream().map(String::length).max(Integer::compareTo).get();
 
-        this.totRows.setText("Lineas: " + rows.length);
-        this.totCols.setText("Columnas: " + cols);
+        this.totalLabel.setText("Lineas: " + rows.length + ", Columnas: " + cols);
     }
     
     @FXML
