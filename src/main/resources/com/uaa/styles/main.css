@@ -66,7 +66,7 @@
 
 }
 
-.tab-pane .tab:hover, .button:hover, .menu-item:focused {
+.tab-pane .tab:hover, .button:hover, .menu-item:focused, .table-view .column-header:hover {
     -fx-background-color: #414141;
     -fx-cursor: hand;
 }
@@ -97,10 +97,67 @@
     -fx-background-color: #d8d8d8;
 }
 
-.code-area {
-    -fx-background-color: #616161;
-    -fx-background-radius: 3;
+/* idk 
+.table-cell {     
+    -fx-padding: 0.5em 0.5em 0.1em 0.3em;
+    -fx-font: 13px "Segoe UI";    
+    -fx-border-insets: 0;
 }
+
+.table-cell:hover {
+    -fx-background-color: #9900ff;
+}
+
+.table-row-cell:empty, .table-cell:empty:hover {
+    -fx-background-color: whitesmoke;
+}
+ 
+.table-row-cell:empty .table-cell {
+    -fx-border-width: 0px;
+}
+ 
+.table-view:row-selection .table-row-cell:filled:hover { 
+    -fx-background-color: rgba(28, 183, 236, 0.25);
+}
+
+.table-view:row-selection .table-row-cell:filled:selected:hover { 
+    -fx-background-color: rgba(228, 183, 236, 0.90);
+}
+
+.table-view:row-selection .table-row-cell:filled:selected { 
+    -fx-background-color: rgba(28, 183, 236, 0.65);
+} */
+
+.table-view, .table-view:focused, .code-area {
+  -fx-background-color: #616161;
+  -fx-background-radius: 3;
+}
+
+.table-view .column-header .label{
+    -fx-alignment: CENTER;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: #3c3c3c;    
+    -fx-size: 45;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+
+.table-view .filler {
+    -fx-width: 100%;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: red;
+}
+
+/* not use 
+.table-view .show-hide-columns-button {
+    -fx-background-color: white;
+    -fx-border-color: -fx-box-border;
+    -fx-border-insets: 0;
+} */
 
 .code-area .text {
     -fx-fill: #d8d8d8;
