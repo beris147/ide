@@ -28,7 +28,7 @@ class Token:
             TokenType.PLUS: lambda: self.value,
             TokenType.MINUS: lambda: self.value,
             TokenType.MULT: lambda: self.value,
-            TokenType.DIV: lambda: self.value,
+            TokenType.DIV: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.MOD: lambda: self.value,
             TokenType.ASSIGN: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.IF: lambda: "RESERVED: " + self.value,
@@ -98,6 +98,7 @@ def getToken():
                     save = False
                     ungetChar = True
                     currentToken.type = TokenType.DIV
+                    state = STATE.DONE
 
             # /* Comment block
             elif state == STATE.COMM_BLOCK:
