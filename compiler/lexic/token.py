@@ -25,8 +25,8 @@ class Token:
             TokenType.BOREQ: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.BT: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.DIFF: lambda: TokenType(self.type).name + ", val: " + self.value,
-            TokenType.PLUS: lambda: self.value,
-            TokenType.MINUS: lambda: self.value,
+            TokenType.PLUS: lambda: TokenType(self.type).name + ", val: " + self.value,
+            TokenType.MINUS: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.MULT: lambda: self.value,
             TokenType.DIV: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.MOD: lambda: self.value,
@@ -84,6 +84,32 @@ def getToken():
                     save = False
                     state = STATE.START
             
+            # +
+            elif state == STATE.PLUS:
+                if c.isdigit():
+                    continue
+                elif c == "+": # FIXME: Same token
+                    currentToken.type = TokenType.PLUS
+                    state = STATE.DONE
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.PLUS
+                    state = STATE.DONE
+
+            # -
+            elif state == STATE.MINUS:
+                if c.isdigit():
+                    continue
+                elif c == "-": # FIXME: Same token
+                    currentToken.type = TokenType.MINUS
+                    state = STATE.DONE
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.MINUS
+                    state = STATE.DONE
+
             # /
             elif state == STATE.DIAG:
                 if c == "*":
