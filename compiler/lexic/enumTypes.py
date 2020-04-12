@@ -46,6 +46,7 @@ class STATE(enum.Enum):
     COMM_LINE = 13
     COMM_BLOCK = 14
     COMM_BLOCK_END = 15
+    SPACES = 16
     DONE = 200
     ERROR = 400
     EOF = 100
