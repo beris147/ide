@@ -84,6 +84,14 @@ def getToken():
                     save = False
                     state = STATE.START
             
+            # Identifiers
+            elif state == STATE.ID:
+                if not (c.isalnum() or c == "_"):
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.ID
+                    state = STATE.DONE
+
             # Numbers
             elif state == STATE.NUM:
                 if c == ".":
