@@ -78,22 +78,57 @@ def getToken():
                 break
 
             save = True
-            if(state == STATE.START):
+            if state == STATE.START:
                 state = checkStart(c)
-                if(state == STATE.ERROR or state == STATE.SPACES): #FIXME: STATE.SPACES
+                if state == STATE.ERROR or state == STATE.SPACES: #FIXME: STATE.SPACES
                     save = False
                     state = STATE.START
             
-            elif(state == STATE.MINOR):
-                if(c == '='):
+            # /
+            elif state == STATE.DIAG:
+                if c == "*":
+                    state = STATE.COMM_BLOCK
+                    currentToken.value = ""
+                    continue
+                elif c == "/":
+                    state = STATE.COMM_LINE
+                    currentToken.value = ""
+                    continue
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.DIV
+
+            # /* Comment block
+            elif state == STATE.COMM_BLOCK:
+                if c == "*":
+                    state = STATE.COMM_BLOCK_END
+                continue
+            # */ Comment block end
+            elif state == STATE.COMM_BLOCK_END:
+                if c == "/":
+                    state = STATE.START
+                elif c != "*":
+                    state = STATE.COMM_BLOCK
+                continue
+            # // Comment line
+            elif state == STATE.COMM_LINE:
+                if c == "\n":
+                    state = STATE.START
+                continue
+
+            # < <=
+            elif state == STATE.MINOR:
+                if c == '=':
                     currentToken.type = TokenType.LOREQ
                 else:
                     save = False
                     ungetChar = True
                     currentToken.type = TokenType.LT
                 state = STATE.DONE
-            elif(state == STATE.BIGGER):
-                if(c == '='):
+            # > >=
+            elif state == STATE.BIGGER:
+                if c == '=':
                     currentToken.type = TokenType.BOREQ
                 else:
                     save = False
@@ -102,20 +137,20 @@ def getToken():
                 state = STATE.DONE
 
             # == != :=
-            elif(state == STATE.EQUAL and c == "="):
+            elif state == STATE.EQUAL and c == "=":
                 currentToken.type = TokenType.EQ
                 state = STATE.DONE
-            elif(state == STATE.NOT and c == "="):
+            elif state == STATE.NOT and c == "=":
                 currentToken.type = TokenType.DIFF
                 state = STATE.DONE
-            elif(state == STATE.ASSIGN and c == "="):
+            elif state == STATE.ASSIGN and c == "=":
                 currentToken.type = TokenType.ASSIGN
                 state = STATE.DONE
 
-            if (save == True):
+            if save == True:
                 currentToken.value += c
 
             posinfile = f.tell()
-            if (ungetChar): posinfile -= 1
+            if ungetChar: posinfile -= 1
         f.close()
     return currentToken
