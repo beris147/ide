@@ -91,7 +91,7 @@ def getToken():
                 elif not c.isdigit():
                     save = False
                     ungetChar = True
-                    currentToken.type = TokenType.UNUM
+                    currentToken.type = TokenType.UNUM if currentToken.value[0].isdigit() else TokenType.SNUM
                     state = STATE.DONE                
             # Dot .
             elif state == STATE.DOT:
@@ -102,17 +102,18 @@ def getToken():
                     ungetChar = True
                     currentToken.type = TokenType.ERROR
                     state = STATE.DONE
+            # Float numbers
             elif state == STATE.FLOAT:
                 if not c.isdigit():
                     save = False
                     ungetChar = True
-                    currentToken.type = TokenType.UFLOAT
+                    currentToken.type = TokenType.UFLOAT if currentToken.value[0].isdigit() else TokenType.SFLOAT
                     state = STATE.DONE
 
             # +
             elif state == STATE.PLUS:
                 if c.isdigit():
-                    continue
+                    state = STATE.NUM
                 elif c == "+": # FIXME: Same token
                     currentToken.type = TokenType.PLUS
                     state = STATE.DONE
@@ -125,7 +126,7 @@ def getToken():
             # -
             elif state == STATE.MINUS:
                 if c.isdigit():
-                    continue
+                    state = STATE.NUM
                 elif c == "-": # FIXME: Same token
                     currentToken.type = TokenType.MINUS
                     state = STATE.DONE
