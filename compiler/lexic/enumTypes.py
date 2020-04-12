@@ -28,6 +28,7 @@ class TokenType(enum.Enum):
     ELSE = 19
     #END OF FILE
     EOF = 200
+    ERROR = 400
 
 class STATE(enum.Enum):
     START = 0
