@@ -34,7 +34,7 @@ class Token:
             TokenType.IF: lambda: "RESERVED: " + self.value,
             TokenType.ELSE: lambda: "RESERVED: " + self.value,
             TokenType.EOF: lambda: "EOF"
-        }.get(self.type, lambda: "UNKNOWN: token={}, val={}".format(self.type, self.value))
+        }.get(self.type, lambda: "UNKNOWN: token={}, val={}".format(TokenType(self.type).name, self.value))
         return funct()
 
 def checkStart(c):
@@ -84,6 +84,31 @@ def getToken():
                     save = False
                     state = STATE.START
             
+            # Numbers
+            elif state == STATE.NUM:
+                if c == ".":
+                    state = STATE.DOT
+                elif not c.isdigit():
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.UNUM
+                    state = STATE.DONE                
+            # Dot .
+            elif state == STATE.DOT:
+                if c.isdigit():
+                    state = STATE.FLOAT
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.ERROR
+                    state = STATE.DONE
+            elif state == STATE.FLOAT:
+                if not c.isdigit():
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.UFLOAT
+                    state = STATE.DONE
+
             # +
             elif state == STATE.PLUS:
                 if c.isdigit():
