@@ -198,14 +198,29 @@ def getToken():
                 state = STATE.DONE
 
             # == != :=
-            elif state == STATE.EQUAL and c == "=":
-                currentToken.type = TokenType.EQ
+            elif state == STATE.EQUAL:
+                if c == "=":
+                    currentToken.type = TokenType.EQ
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.ERROR
                 state = STATE.DONE
-            elif state == STATE.NOT and c == "=":
-                currentToken.type = TokenType.DIFF
+            elif state == STATE.NOT:
+                if c == "=":
+                    currentToken.type = TokenType.DIFF
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.ERROR
                 state = STATE.DONE
-            elif state == STATE.ASSIGN and c == "=":
-                currentToken.type = TokenType.ASSIGN
+            elif state == STATE.ASSIGN:
+                if c == "=":
+                    currentToken.type = TokenType.ASSIGN
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.ERROR
                 state = STATE.DONE
 
             if save == True:
