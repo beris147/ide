@@ -27,10 +27,17 @@ class Token:
             TokenType.DIFF: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.PLUS: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.MINUS: lambda: TokenType(self.type).name + ", val: " + self.value,
-            TokenType.MULT: lambda: self.value,
+            TokenType.MULT: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.DIV: lambda: TokenType(self.type).name + ", val: " + self.value,
-            TokenType.MOD: lambda: self.value,
+            TokenType.MOD: lambda: TokenType(self.type).name + ", val: " + self.value,
+            TokenType.INC: lambda: TokenType(self.type).name + ", val: " + self.value,
+            TokenType.DEC: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.ASSIGN: lambda: TokenType(self.type).name + ", val: " + self.value,
+            TokenType.OPENP: lambda: TokenType(self.type).name + ", val: " + self.value,
+            TokenType.CLOSEP: lambda: TokenType(self.type).name + ", val: " + self.value,
+            TokenType.OPENC: lambda: TokenType(self.type).name + ", val: " + self.value,
+            TokenType.CLOSEC: lambda: TokenType(self.type).name + ", val: " + self.value,
+            TokenType.SEMI: lambda: TokenType(self.type).name + ", val: " + self.value,
             TokenType.IF: lambda: "RESERVED: " + self.value,
             TokenType.ELSE: lambda: "RESERVED: " + self.value,
             TokenType.EOF: lambda: "EOF"
@@ -60,7 +67,7 @@ def checkStart(c):
         return STATE.ASSIGN
     elif c == " " or c == "\t" or c == "\n":
         return STATE.SPACES
-    return STATE.ERROR
+    return STATE.UNIQUE
 
 def getToken():
     currentToken = Token()
@@ -80,10 +87,29 @@ def getToken():
             save = True
             if state == STATE.START:
                 state = checkStart(c)
-                if state == STATE.ERROR or state == STATE.SPACES: #FIXME: STATE.SPACES
-                    save = False
+                if state == STATE.SPACES:
                     state = STATE.START
-            
+                    continue
+                # Unique character
+                elif state == STATE.UNIQUE:
+                    state = STATE.DONE
+                    if c == "*":
+                        currentToken.type = TokenType.MULT
+                    elif c == "%":
+                        currentToken.type = TokenType.MOD
+                    elif c == "(":
+                        currentToken.type = TokenType.OPENP
+                    elif c == ")":
+                        currentToken.type = TokenType.CLOSEP
+                    elif c == "{":
+                        currentToken.type = TokenType.OPENC
+                    elif c == "}":
+                        currentToken.type = TokenType.CLOSEC
+                    elif c == ";":
+                        currentToken.type = TokenType.SEMI
+                    else:
+                        currentToken.type = TokenType.ERROR
+
             # Identifiers
             elif state == STATE.ID:
                 if not (c.isalnum() or c == "_"):
@@ -122,8 +148,8 @@ def getToken():
             elif state == STATE.PLUS:
                 if c.isdigit():
                     state = STATE.NUM
-                elif c == "+": # FIXME: Same token
-                    currentToken.type = TokenType.PLUS
+                elif c == "+":
+                    currentToken.type = TokenType.INC
                     state = STATE.DONE
                 else:
                     save = False
@@ -135,8 +161,8 @@ def getToken():
             elif state == STATE.MINUS:
                 if c.isdigit():
                     state = STATE.NUM
-                elif c == "-": # FIXME: Same token
-                    currentToken.type = TokenType.MINUS
+                elif c == "-":
+                    currentToken.type = TokenType.DEC
                     state = STATE.DONE
                 else:
                     save = False
@@ -198,14 +224,29 @@ def getToken():
                 state = STATE.DONE
 
             # == != :=
-            elif state == STATE.EQUAL and c == "=":
-                currentToken.type = TokenType.EQ
+            elif state == STATE.EQUAL:
+                if c == "=":
+                    currentToken.type = TokenType.EQ
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.ERROR
                 state = STATE.DONE
-            elif state == STATE.NOT and c == "=":
-                currentToken.type = TokenType.DIFF
+            elif state == STATE.NOT:
+                if c == "=":
+                    currentToken.type = TokenType.DIFF
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.ERROR
                 state = STATE.DONE
-            elif state == STATE.ASSIGN and c == "=":
-                currentToken.type = TokenType.ASSIGN
+            elif state == STATE.ASSIGN:
+                if c == "=":
+                    currentToken.type = TokenType.ASSIGN
+                else:
+                    save = False
+                    ungetChar = True
+                    currentToken.type = TokenType.ERROR
                 state = STATE.DONE
 
             if save == True:
