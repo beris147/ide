@@ -21,11 +21,21 @@ class TokenType(enum.Enum):
     MULT = 14
     DIV = 15
     MOD = 16
+    INC = 17
+    DEC = 18
     #ASSIGN
-    ASSIGN = 17
+    ASSIGN = 19
+    #SEMICOLON
+    SEMI = 20
+    #PARENTHESIS
+    OPENP = 21
+    CLOSEP = 22
+    # CONTAINER
+    OPENC = 23
+    CLOSEC = 24
     #PALABRAS RESERVADAS
-    IF = 18
-    ELSE = 19
+    IF = 25
+    ELSE = 26
     #END OF FILE
     EOF = 200
     ERROR = 400
@@ -48,6 +58,7 @@ class STATE(enum.Enum):
     COMM_BLOCK = 14
     COMM_BLOCK_END = 15
     SPACES = 16
+    UNIQUE = 17
     DONE = 200
     ERROR = 400
     EOF = 100
