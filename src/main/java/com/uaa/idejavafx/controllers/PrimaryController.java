@@ -52,20 +52,20 @@ public class PrimaryController implements Initializable {
     private static final String PAREN_PATTERN = "\\(|\\)";
     private static final String BRACE_PATTERN = "\\{|\\}";
     private static final String BRACKET_PATTERN = "\\[|\\]";
-    private static final String OPERATOR_PATTERN = "(\\+|-|\\*|%|<|<=|>|>=|==|!=|:=|\\+\\+|--)";
     private static final String SEMICOLON_PATTERN = "\\;";
     private static final String COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/";
+    private static final String OPERATOR_PATTERN = "(\\+|-|\\*|/|%|<=|<|>=|>|==|!=|:=|\\+\\+|--)";
 
     private static final Pattern PATTERN = Pattern.compile(
             "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
             + "|(?<NUMBER>" + NUMBER_PATTERN + ")"
             + "|(?<IDENTIFIER>" + IDENTIFIER_PATTERN + ")"
-            + "|(?<OPERATOR>" + OPERATOR_PATTERN + ")"
             + "|(?<PAREN>" + PAREN_PATTERN + ")"
             + "|(?<BRACE>" + BRACE_PATTERN + ")"
             + "|(?<BRACKET>" + BRACKET_PATTERN + ")"
             + "|(?<SEMICOLON>" + SEMICOLON_PATTERN + ")"
             + "|(?<COMMENT>" + COMMENT_PATTERN + ")"
+            + "|(?<OPERATOR>" + OPERATOR_PATTERN + ")"
     );
     
     @Override
@@ -116,9 +116,9 @@ public class PrimaryController implements Initializable {
                     matcher.group("PAREN") != null ? "paren" :
                     matcher.group("BRACE") != null ? "brace" :
                     matcher.group("BRACKET") != null ? "bracket" :
-                    matcher.group("OPERATOR") != null ? "operator" :
                     matcher.group("SEMICOLON") != null ? "semicolon" :
                     matcher.group("COMMENT") != null ? "comment" :
+                    matcher.group("OPERATOR") != null ? "operator" :
                     null;
                     assert styleClass != null;
             builder.add(Collections.emptyList(), matcher.start() - lastKey);
