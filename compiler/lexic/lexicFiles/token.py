@@ -49,7 +49,7 @@ class Token:
             TokenType.REAL: lambda: "RESERVED WORD: " + self.value,
             TokenType.INT: lambda: "RESERVED WORD: " + self.value,
             TokenType.BOOLEAN: lambda: "RESERVED WORD: " + self.value,
-            TokenType.ERROR: lambda: "UNKNOWN LEXEME: " + self.value,
+            TokenType.ERROR: lambda: "ERROR: " + self.value,
             TokenType.EOF: lambda: "EOF"
         }.get(self.type, lambda: "UNKNOWN: token={}, val={}".format(TokenType(self.type).name, self.value))
         return "<"+funct()+">\n"

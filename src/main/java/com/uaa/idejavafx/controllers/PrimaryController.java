@@ -1,11 +1,15 @@
 package com.uaa.idejavafx.controllers;
 
 import com.uaa.classes.FileHelper;
+import com.uaa.idejavafx.Main;
+import static com.uaa.idejavafx.Main.compilerDir;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Arrays;
@@ -25,6 +29,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.stage.DirectoryChooser;
 import org.fxmisc.richtext.*;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
@@ -33,7 +38,7 @@ import org.reactfx.Subscription;
 
 public class PrimaryController implements Initializable {
     @FXML
-    private CodeArea codeText, outputArea, errorArea;
+    private CodeArea codeText, outputArea, errorArea, lexicalArea;
     @FXML
     private Tab tabTitle, outputTab, errorTab;
     @FXML
@@ -147,7 +152,6 @@ public class PrimaryController implements Initializable {
     
     private void showCoords() {
         TwoDimensional.Position pos = this.codeText.offsetToPosition(this.codeText.getCaretPosition(), TwoDimensional.Bias.Forward);
-
         this.currentLabel.setText("Ln: " + (pos.getMajor() + 1) + ", Col: " + (pos.getMinor() + 1));
     }
     
@@ -218,6 +222,8 @@ public class PrimaryController implements Initializable {
     @FXML
     private void runLexical(){
         SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
+        Process p = null;
+        BufferedReader stdInput = null, stdError = null;
         this.fileHelper.saveContent(codeText);
         if(this.fileHelper.getFile()== null){
             selectionModel.select(errorTab);
@@ -225,16 +231,16 @@ public class PrimaryController implements Initializable {
         } else {
             try {
                 selectionModel.select(outputTab);
-                outputArea.replaceText("Compilando léxico...");
-                String compilerDir = "C:\\Users\\beris\\OneDrive\\Documentos\\NetBeansProjects\\ide\\compiler";
-                String dir = this.fileHelper.getFile().getParent();
-                String name = this.fileHelper.getFile().getName();
-                String command = "python "+compilerDir+"\\lexic\\__init__.py";
-                String params = " -d"+dir+" -f"+name+" -t yes";
-                Process p = Runtime.getRuntime().exec(command + params);
-                BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                String s = "", output = "", errors = "";
+                outputArea.replaceText("Compilando léxico...\n");
+                String dir = this.fileHelper.getFile().getParent(), name = this.fileHelper.getFile().getName();
+                if (compilerDir == null) {
+                    Main.setCompilerDir();
+                }
+                String command = Main.python+Main.compilerDir+"\\lexic\\__init__.py", params = " -d"+dir+" -f"+name+" -t yes";
+                p = Runtime.getRuntime().exec(command + params);
+                stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                String s, output = " ", errors = "";
                 while ((s = stdInput.readLine()) != null) {
                     output += s + "\n";
                 }
@@ -245,14 +251,20 @@ public class PrimaryController implements Initializable {
                     selectionModel.select(errorTab);
                 } else {
                     selectionModel.select(outputTab);
+                    outputArea.replaceText("build: ok");
                 }
                 errorArea.replaceText(errors);
-                outputArea.appendText(output);
-                p.destroy();
-                stdInput.close();
-                stdError.close();
+                lexicalArea.replaceText(output);
             } catch (IOException ex) {
-                ex.printStackTrace();
+                errorArea.appendText("\n"+ex.getMessage());
+            } finally{
+                try {
+                    if(p != null) p.destroyForcibly();
+                    if(stdInput!=null) stdInput.close();
+                    if(stdError != null) stdError.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
     }

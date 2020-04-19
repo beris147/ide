@@ -12,7 +12,7 @@ def init(dir, name, trace, out):
     global file
     posinfile = 0
     directory = dir
-    file = directory+"/"+name
+    file = directory+"\\"+name
     TraceScan = trace
     if trace:
         Path(directory+"\\compilador").mkdir(parents=True, exist_ok=True)

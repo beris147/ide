@@ -24,4 +24,4 @@ var.init(args.dir,args.file,args.tracer,args.output)
 startLexicAnalysis() #Lexic Analysis
 if var.TraceScan:
     var.output.close()
-print("build: ok listo")
+print("build: finshed")

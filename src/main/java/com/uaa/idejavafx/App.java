@@ -7,6 +7,9 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import javafx.application.Platform;
+import javafx.event.EventHandler;
+import javafx.stage.WindowEvent;
 
 /**
  * JavaFX App
@@ -17,7 +20,15 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        Platform.setImplicitExit(true);
         scene = new Scene(loadFXML("primary"), 640, 480);
+        stage.setOnCloseRequest((WindowEvent event) -> {
+            Platform.exit();
+            Thread start = new Thread(() -> {
+                System.exit(0);
+            });
+            start.start();
+        });
         stage.setMaximized(true);
         stage.setScene(scene);
         stage.show();
