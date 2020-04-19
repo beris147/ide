@@ -21,9 +21,9 @@
 <?import javafx.scene.text.Font?>
 <?import org.fxmisc.richtext.CodeArea?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uaa.idejavafx.controllers.PrimaryController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="600.0" stylesheets="@../styles/main.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.uaa.idejavafx.controllers.PrimaryController">
    <children>
-      <SplitPane dividerPositions="0.12311557788944724, 0.8040201005025126" layoutX="23.0" layoutY="14.0" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" stylesheets="@../styles/main.css" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <SplitPane dividerPositions="0.12311557788944724, 0.8040201005025126" layoutX="23.0" layoutY="14.0" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
           <AnchorPane maxHeight="-Infinity" prefHeight="20.0" SplitPane.resizableWithParent="false">
                <children>
@@ -115,7 +115,7 @@
                                  </image></ImageView>
                            </graphic>
                         </Button>
-                        <Button mnemonicParsing="false" text="Léxico" />
+                        <Button fx:id="lexicalButton" mnemonicParsing="false" onAction="#runLexical" text="Léxico" />
                         <Button mnemonicParsing="false" text="Sintáctico" />
                         <Button mnemonicParsing="false" text="Semántico" />
                         <SplitMenuButton mnemonicParsing="false" onAction="#run" text="run">
@@ -238,21 +238,21 @@
                         </Label>
                      </children>
                   </Pane>
-                  <TabPane layoutX="-32.0" layoutY="-86.0" prefHeight="70.4" prefWidth="598.4" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
+                  <TabPane fx:id="statusTabPane" layoutX="-32.0" layoutY="-86.0" prefHeight="70.4" prefWidth="598.4" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
                     <tabs>
-                      <Tab text="Errores">
+                      <Tab fx:id="outputTab" text="Output">
                         <content>
                           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                  <children>
-                                    <CodeArea prefHeight="45.6" prefWidth="598.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                    <CodeArea fx:id="outputArea" prefHeight="45.6" prefWidth="598.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                  </children></AnchorPane>
                         </content>
                       </Tab>
-                      <Tab text="Output">
+                      <Tab fx:id="errorTab" text="Errores">
                         <content>
                           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                  <children>
-                                    <CodeArea prefHeight="45.6" prefWidth="598.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                    <CodeArea fx:id="errorArea" prefHeight="45.6" prefWidth="598.4" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                  </children></AnchorPane>
                         </content>
                       </Tab>

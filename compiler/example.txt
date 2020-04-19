@@ -1,6 +1,12 @@
-12Hola
-Mundo
-FROM
-pyton   
-with txt
-file
+int main(){
+    int x := 0;
+    cout(x<y)
+    otra cosa
+    +
+    -
+    *
+    {
+        int := 1
+        bla lba lba
+    }
+}

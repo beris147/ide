@@ -1,0 +1,31 @@
+<RESERVED WORD: int>
+<RESERVED WORD: main>
+<(>
+<)>
+<{>
+<RESERVED WORD: int>
+<ID, name=x>
+<:=>
+<UNUM, val=0>
+<;>
+<RESERVED WORD: cout>
+<(>
+<ID, name=x>
+<<>
+<ID, name=y>
+<)>
+<ID, name=otra>
+<ID, name=cosa>
+<+>
+<->
+<*>
+<{>
+<RESERVED WORD: int>
+<:=>
+<UNUM, val=1>
+<ID, name=bla>
+<ID, name=lba>
+<ID, name=lba>
+<}>
+<}>
+<EOF>

@@ -1,7 +1,11 @@
 package com.uaa.idejavafx.controllers;
 
 import com.uaa.classes.FileHelper;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Arrays;
@@ -16,8 +20,11 @@ import java.util.regex.Pattern;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import org.fxmisc.richtext.*;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
@@ -26,15 +33,15 @@ import org.reactfx.Subscription;
 
 public class PrimaryController implements Initializable {
     @FXML
-    private CodeArea codeText;
+    private CodeArea codeText, outputArea, errorArea;
     @FXML
-    private Tab tabTitle;
+    private Tab tabTitle, outputTab, errorTab;
     @FXML
-    private Label currentLabel;
+    private Label currentLabel, totalLabel, infoLabel;
     @FXML
-    private Label totalLabel;
+    private Button lexicalButton;
     @FXML
-    private Label infoLabel;
+    private TabPane statusTabPane;
     
     private final FileHelper fileHelper = new FileHelper();
     
@@ -206,5 +213,47 @@ public class PrimaryController implements Initializable {
     private void getCaretPosition() {
         this.showCoords();
         this.showTotal();
+    }
+    
+    @FXML
+    private void runLexical(){
+        SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
+        this.fileHelper.saveContent(codeText);
+        if(this.fileHelper.getFile()== null){
+            selectionModel.select(errorTab);
+            errorArea.replaceText("Archivo no seleccionado");
+        } else {
+            try {
+                selectionModel.select(outputTab);
+                outputArea.replaceText("Compilando léxico...");
+                String compilerDir = "C:\\Users\\beris\\OneDrive\\Documentos\\NetBeansProjects\\ide\\compiler";
+                String dir = this.fileHelper.getFile().getParent();
+                String name = this.fileHelper.getFile().getName();
+                String command = "python "+compilerDir+"\\lexic\\__init__.py";
+                String params = " -d"+dir+" -f"+name+" -t yes";
+                Process p = Runtime.getRuntime().exec(command + params);
+                BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+                String s = "", output = "", errors = "";
+                while ((s = stdInput.readLine()) != null) {
+                    output += s + "\n";
+                }
+                while ((s = stdError.readLine()) != null) {
+                    errors += s + "\n";
+                }
+                if(!errors.isEmpty()){
+                    selectionModel.select(errorTab);
+                } else {
+                    selectionModel.select(outputTab);
+                }
+                errorArea.replaceText(errors);
+                outputArea.appendText(output);
+                p.destroy();
+                stdInput.close();
+                stdError.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 }

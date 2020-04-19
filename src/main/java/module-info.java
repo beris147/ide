@@ -5,4 +5,5 @@ module com.uaa.idejavafx {
     opens com.uaa.idejavafx to javafx.fxml;
     exports com.uaa.idejavafx;
     requires org.fxmisc.richtext;
+    requires reactfx;
 }
