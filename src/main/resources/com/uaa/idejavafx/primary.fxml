@@ -69,6 +69,7 @@
                               <MenuItem mnemonicParsing="false" text="Sintáctico" />
                               <MenuItem mnemonicParsing="false" text="Semántico" />
                               <MenuItem mnemonicParsing="false" text="Compilar" />
+                              <MenuItem mnemonicParsing="false" onAction="#selectCompiler" text="Seleccionar" />
                         </items>
                       </Menu>
                     </menus>

@@ -218,6 +218,11 @@ public class PrimaryController implements Initializable {
     }
     
     @FXML
+    private void selectCompiler() {
+        Main.setCompilerDir();
+    }
+    
+    @FXML
     private void runLexical(){
         SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
         Process p = null;
