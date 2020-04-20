@@ -2,14 +2,9 @@ package com.uaa.idejavafx.controllers;
 
 import com.uaa.classes.FileHelper;
 import com.uaa.idejavafx.Main;
-import static com.uaa.idejavafx.Main.compilerDir;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Arrays;
@@ -29,7 +24,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.stage.DirectoryChooser;
 import org.fxmisc.richtext.*;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
@@ -98,6 +92,10 @@ public class PrimaryController implements Initializable {
                 }
             })
             .subscribe(this::applyHighlight);
+        
+        this.lexicalArea.setEditable(false);
+        this.outputArea.setEditable(false); this.outputArea.setWrapText(true);
+        this.errorArea.setEditable(false); this.errorArea.setWrapText(true);
     }
     
     private Task<StyleSpans<Collection<String>>> buildHighlight() {
@@ -233,7 +231,7 @@ public class PrimaryController implements Initializable {
                 selectionModel.select(outputTab);
                 outputArea.replaceText("Compilando léxico...\n");
                 String dir = this.fileHelper.getFile().getParent(), name = this.fileHelper.getFile().getName();
-                if (compilerDir == null) {
+                if (Main.compilerDir == null) {
                     Main.setCompilerDir();
                 }
                 String command = Main.python+Main.compilerDir+"\\lexic\\__init__.py", params = " -d"+dir+" -f"+name+" -t yes";
@@ -241,8 +239,13 @@ public class PrimaryController implements Initializable {
                 stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
                 String s, output = " ", errors = "";
+                String lastLine = "";
                 while ((s = stdInput.readLine()) != null) {
                     output += s + "\n";
+                    if(s.contains("ERROR")){
+                        errors += s + " line: " + lastLine + "\n";
+                    }
+                    lastLine = s;
                 }
                 while ((s = stdError.readLine()) != null) {
                     errors += s + "\n";

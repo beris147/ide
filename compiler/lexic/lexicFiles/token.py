@@ -88,6 +88,8 @@ def getToken():
                 state = checkStart(c)
                 if state == STATE.SPACES:
                     state = STATE.START
+                    if(c == '\n'):
+                        var.lineo = var.lineo + 1
                     continue
                 # Unique character
                 elif state == STATE.UNIQUE:
@@ -243,5 +245,7 @@ def getToken():
                 currentToken.type = reservedLookUp(currentToken.value)
             #currentToken.value += '\0'
     if var.TraceScan:
-        var.output.write(currentToken.printToken())
+        print(var.lineo + 1)
+        print(currentToken.printToken(), end = '')
+        var.output.write(str(var.lineo+1) + "\n" + currentToken.printToken())
     return currentToken

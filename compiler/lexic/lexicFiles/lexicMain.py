@@ -8,4 +8,4 @@ def startLexicAnalysis():
         tokens.append(token)
         if (token.type == TokenType.EOF):
             break
-    print(*tokens)
+    #print(*tokens)

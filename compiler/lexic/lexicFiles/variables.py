@@ -1,5 +1,6 @@
 from pathlib import Path
 posinfile = ""
+lineo = 0
 TraceScan = ""
 directory = ""
 output = ""
@@ -10,6 +11,8 @@ def init(dir, name, trace, out):
     global directory
     global output
     global file
+    global lineo
+    lineo = 0
     posinfile = 0
     directory = dir
     file = directory+"\\"+name
