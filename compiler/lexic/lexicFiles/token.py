@@ -177,6 +177,8 @@ def getToken():
                 elif state == STATE.COMM_BLOCK:
                     if c == "*":
                         state = STATE.COMM_BLOCK_END
+                    elif c == "\n":
+                        var.lineo += 1
                     continue
                 # */ Comment block end
                 elif state == STATE.COMM_BLOCK_END:
@@ -184,6 +186,8 @@ def getToken():
                         state = STATE.START
                     elif c != "*":
                         state = STATE.COMM_BLOCK
+                    elif c == "\n":
+                        var.lineo += 1
                     continue
                 # // Comment line
                 elif state == STATE.COMM_LINE:
