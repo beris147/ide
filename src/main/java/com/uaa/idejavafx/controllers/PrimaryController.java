@@ -1,24 +1,30 @@
 package com.uaa.idejavafx.controllers;
 
 import com.uaa.classes.FileHelper;
+import com.uaa.classes.LineError;
 import com.uaa.idejavafx.Main;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -27,6 +33,7 @@ import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.*;
 import org.fxmisc.richtext.model.StyleSpans;
@@ -100,6 +107,7 @@ public class PrimaryController implements Initializable {
         this.lexicalArea.setEditable(false);
         this.outputArea.setEditable(false); this.outputArea.setWrapText(true);
         this.errorArea.setEditable(false); this.errorArea.setWrapText(true);
+        this.initLineNumberFactory(new ArrayList<>());
         this.setScrollPane(this.lexicalArea, (AnchorPane) this.lexicalArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
         this.setScrollPane(this.codeText, (AnchorPane) this.codeText.getParent(), ScrollBarPolicy.ALWAYS, ScrollBarPolicy.ALWAYS);
         this.setScrollPane(this.outputArea, (AnchorPane) this.outputArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
@@ -114,6 +122,20 @@ public class PrimaryController implements Initializable {
         AnchorPane.setRightAnchor(sp, 0.0);
         AnchorPane.setBottomAnchor(sp, 0.0);
         AnchorPane.setTopAnchor(sp, 0.0);
+    }
+    
+    private void initLineNumberFactory(List<Integer> errors) {
+        IntFunction<Node> number = LineNumberFactory.get(this.codeText);
+        IntFunction<Node> dot = new LineError(this.codeText.currentParagraphProperty(), errors);
+        IntFunction<Node> lineNumberFactory = line -> {
+            HBox hbox = new HBox(
+                number.apply(line),
+                dot.apply(line));
+            hbox.setAlignment(Pos.CENTER);
+            return hbox;
+        };
+        
+        this.codeText.setParagraphGraphicFactory(lineNumberFactory);
     }
     
     private Task<StyleSpans<Collection<String>>> buildHighlight() {
@@ -197,12 +219,14 @@ public class PrimaryController implements Initializable {
         if(this.fileHelper.getFile() != null){
             this.infoLabel.setText("\tArchivo guardado con éxito");
         }
+        this.initLineNumberFactory(new ArrayList<>());
     }
     
     @FXML
     private void saveFileAs() throws IOException {
         this.fileHelper.setFile(null);
         this.saveFile();
+        this.initLineNumberFactory(new ArrayList<>());
     }
     
     @FXML
@@ -266,10 +290,12 @@ public class PrimaryController implements Initializable {
                 stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
                 String s, output = " ", errors = "";
                 String lastLine = "";
+                List<Integer> lineErros = new ArrayList<>();
                 while ((s = stdInput.readLine()) != null) {
                     output += s + "\n";
                     if(s.contains("ERROR")){
                         errors += s + " line: " + lastLine + "\n";
+                        lineErros.add(Integer.parseInt(lastLine) - 1);
                     }
                     lastLine = s;
                 }
@@ -284,6 +310,7 @@ public class PrimaryController implements Initializable {
                 }
                 errorArea.replaceText(errors);
                 lexicalArea.replaceText(output);
+                this.initLineNumberFactory(lineErros);
             } catch (IOException ex) {
                 errorArea.appendText("\n"+ex.getMessage());
             } finally{
