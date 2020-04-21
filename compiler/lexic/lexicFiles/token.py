@@ -192,6 +192,7 @@ def getToken():
                 # // Comment line
                 elif state == STATE.COMM_LINE:
                     if c == "\n":
+                        var.lineo += 1
                         state = STATE.START
                     continue
 
