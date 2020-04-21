@@ -21,9 +21,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.AnchorPane;
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.*;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
@@ -41,6 +45,8 @@ public class PrimaryController implements Initializable {
     private Button lexicalButton;
     @FXML
     private TabPane statusTabPane;
+    @FXML
+    private AnchorPane pane;
     
     private final FileHelper fileHelper = new FileHelper();
     
@@ -94,6 +100,20 @@ public class PrimaryController implements Initializable {
         this.lexicalArea.setEditable(false);
         this.outputArea.setEditable(false); this.outputArea.setWrapText(true);
         this.errorArea.setEditable(false); this.errorArea.setWrapText(true);
+        this.setScrollPane(this.lexicalArea, (AnchorPane) this.lexicalArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
+        this.setScrollPane(this.codeText, (AnchorPane) this.codeText.getParent(), ScrollBarPolicy.ALWAYS, ScrollBarPolicy.ALWAYS);
+        this.setScrollPane(this.outputArea, (AnchorPane) this.outputArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
+        this.setScrollPane(this.errorArea, (AnchorPane) this.errorArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
+    }
+    
+    private void setScrollPane(CodeArea area, AnchorPane pane, ScrollBarPolicy vBar, ScrollBarPolicy hBar){
+        VirtualizedScrollPane sp = new VirtualizedScrollPane(area);
+        sp.setVbarPolicy(vBar); sp.setHbarPolicy(hBar);
+        pane.getChildren().add(sp);
+        AnchorPane.setLeftAnchor(sp, 0.0);
+        AnchorPane.setRightAnchor(sp, 0.0);
+        AnchorPane.setBottomAnchor(sp, 0.0);
+        AnchorPane.setTopAnchor(sp, 0.0);
     }
     
     private Task<StyleSpans<Collection<String>>> buildHighlight() {
@@ -153,8 +173,11 @@ public class PrimaryController implements Initializable {
     
     private void showTotal() {
         String [] rows = this.codeText.getText().split("\n");
-        int cols = Arrays.asList(rows).stream().map(String::length).max(Integer::compareTo).get();
-
+        Optional<Integer> opMax = Arrays.asList(rows)
+                .stream()
+                .map(String::length)
+                .max(Integer::compareTo);
+        int cols = (opMax.isPresent()) ? opMax.get() : 0;
         this.totalLabel.setText("Lineas: " + rows.length + ", Columnas: " + cols);
     }
     
