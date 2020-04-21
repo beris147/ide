@@ -294,8 +294,10 @@ public class PrimaryController implements Initializable {
                 while ((s = stdInput.readLine()) != null) {
                     output += s + "\n";
                     if(s.contains("ERROR")){
-                        errors += s + " line: " + lastLine + "\n";
-                        lineErros.add(Integer.parseInt(lastLine) - 1);
+                        Integer l = Integer.parseInt(lastLine.split(" ")[0]);
+                        Integer c = Integer.parseInt(lastLine.split(" ")[1]);
+                        errors += s.replace("<ERROR: ", "Error con \"").replace(">", "\"") + " línea: " + l + " columna: " + c+"\n";
+                        lineErros.add(l - 1);
                     }
                     lastLine = s;
                 }

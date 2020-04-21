@@ -1,5 +1,5 @@
 from .enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
-import lexicFiles.variables as var
+#import lexicFiles.variables as var delete
 class Token:
     type = 0
     value = 0
@@ -54,7 +54,7 @@ class Token:
             TokenType.EOF: lambda: "EOF"
         }.get(self.type, lambda: "UNKNOWN: token={}, val={}".format(TokenType(self.type).name, self.value))
         return "<"+funct()+">\n"
-
+""" MOVED TO LEXICMAIN, delete
 def reservedLookUp(value):
     resWord = reservedWords.get(value)
     return resWord if resWord else TokenType.ID
@@ -255,3 +255,4 @@ def getToken():
         print(currentToken.printToken(), end = '')
         var.output.write(str(var.lineo+1) + "\n" + currentToken.printToken())
     return currentToken
+"""
