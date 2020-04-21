@@ -22,8 +22,8 @@ class Lexer:
     def readfile(self):
         return (ln for ln in open(self.file, 'r'))
     
-    def printCurrent(self, token):
-        location = str(self.lineo) + " " + str(self.posinline - len(token.value) + 1)
+    def printCurrent(self, token, loc = True):
+        location = str(self.lineo) + " " + str(self.posinline - len(token.value) + 1) if loc else ""
         print(location + "\n" + token.printToken(), end = '')
         self.output.write(location + "\n" + token.printToken())
     
@@ -57,7 +57,9 @@ class Lexer:
                 currentToken = Token()
                 tokens.append(token)
             self.lineo += 1
-        tokens.append(Token(TokenType.EOF))
+        eofToken = Token(TokenType.EOF)
+        tokens.append(eofToken)
+        self.printCurrent(eofToken, False)
         return tokens
         if self.traceScan:
             self.output.close()
