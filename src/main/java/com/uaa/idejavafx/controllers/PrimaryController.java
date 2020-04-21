@@ -47,9 +47,7 @@ public class PrimaryController implements Initializable {
     private ExecutorService executor;
     
     private static final String[] KEYWORDS = new String[] {
-            "main", "if", "then", "else", "end",
-            "do", "while", "cin", "cout", "real",
-            "int", "boolean"
+            "main", "if", "then", "else", "end", "do", "while", "cin", "cout", "real", "int", "boolean"
     };
 
     private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
@@ -60,7 +58,7 @@ public class PrimaryController implements Initializable {
     private static final String BRACKET_PATTERN = "\\[|\\]";
     private static final String SEMICOLON_PATTERN = "\\;";
     private static final String COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/";
-    private static final String OPERATOR_PATTERN = "(\\+|-|\\*|/|%|<=|<|>=|>|==|!=|:=|\\+\\+|--)";
+    private static final String OPERATOR_PATTERN = "(\\+|-|\\*|/|%|<=|<|>=|>|==|!=|:=|\\+\\+|--|\\,|\\;)";
 
     private static final Pattern PATTERN = Pattern.compile(
             "(?<KEYWORD>" + KEYWORD_PATTERN + ")"

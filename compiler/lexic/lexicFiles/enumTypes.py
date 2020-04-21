@@ -33,6 +33,8 @@ class TokenType(enum.Enum):
     # CONTAINER
     OPENC = 23
     CLOSEC = 24
+    # COMMA
+    COMMA = 25
     #PALABRAS RESERVADAS main, if, then, else, end, do, while, cin, cout, real, int, boolean
     MAIN = 31
     IF = 32
@@ -95,7 +97,8 @@ uniqueCharacter = {
     ")" : TokenType.CLOSEP,
     "{" : TokenType.OPENC,
     "}" : TokenType.CLOSEC,
-    ";" : TokenType.SEMI
+    ";" : TokenType.SEMI,
+    "," : TokenType.COMMA
 }
 
 startSimbol = {

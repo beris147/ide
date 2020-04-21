@@ -37,6 +37,7 @@ class Token:
             TokenType.OPENC: lambda: self.value,
             TokenType.CLOSEC: lambda: self.value,
             TokenType.SEMI: lambda: self.value,
+            TokenType.COMMA: lambda: self.value,
             TokenType.MAIN: lambda: "RESERVED WORD: " + self.value,
             TokenType.IF: lambda: "RESERVED WORD: " + self.value,
             TokenType.THEN: lambda: "RESERVED WORD: " + self.value,
