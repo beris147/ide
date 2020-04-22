@@ -11,7 +11,7 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
-"""
+
 parser = argparse.ArgumentParser(description='tiny lexical analyzer')
 parser.add_argument('-t', '--tracer', type=str2bool, nargs='?', const=True, default=False, help='tracer scan required')
 parser.add_argument('-o', '--output', default=None, help='personalized output file and directory')
@@ -19,9 +19,8 @@ requiredNamed = parser.add_argument_group('required named arguments')
 requiredNamed.add_argument('-d', '--dir', help='main file directory', required=True)
 requiredNamed.add_argument('-f', '--file', help='main file name', required=True)
 args = parser.parse_args()
-"""
-#lex = Lexer(args.dir,args.file,args.tracer,args.output)
-# for debugging + 
-lex = Lexer("C:\\Users\\beris\\OneDrive\\Escritorio", "main.txt", True)
+
+lex = Lexer(args.dir,args.file,args.tracer,args.output)
+# for debugging + print("compiler is debuggin") lex = Lexer("C:\\Users\\beris\\OneDrive\\Escritorio", "main.txt", True)
 tokens = lex.run()
 print("build: finshed")
