@@ -11,6 +11,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import org.reactfx.value.Val;
 
 /**
@@ -28,11 +29,11 @@ public class LineError implements IntFunction<Node> {
 
     @Override
     public Node apply(int lineNumber) {
-        Circle circle = new Circle(5);
-        circle.setFill(Color.RED);
+        Rectangle rectangle = new Rectangle(10, 3);
+        rectangle.setFill(Color.RED);
 
-        circle.visibleProperty().bind(Val.map(line, l -> this.errors.contains(lineNumber)).conditionOnShowing(circle));
+        rectangle.visibleProperty().bind(Val.map(line, l -> this.errors.contains(lineNumber)).conditionOnShowing(rectangle));
 
-        return circle;
+        return rectangle;
     }
 }

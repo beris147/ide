@@ -104,7 +104,7 @@ class Lexer:
                     elif not c.isdigit():
                         save = False
                         ungetChar = True if c else False
-                        currentToken.type = TokenType.UNUM if currentToken.value[0].isdigit() else TokenType.SNUM
+                        currentToken.type = TokenType.NUM if currentToken.value[0].isdigit() else TokenType.SNUM
                         self.state = STATE.DONE                
                 # Dot .
                 elif self.state == STATE.DOT:
@@ -120,14 +120,14 @@ class Lexer:
                     if not c.isdigit():
                         save = False
                         ungetChar = True if c else False
-                        currentToken.type = TokenType.UFLOAT if currentToken.value[0].isdigit() else TokenType.SFLOAT
+                        currentToken.type = TokenType.FLOAT if currentToken.value[0].isdigit() else TokenType.SFLOAT
                         self.state = STATE.DONE
 
                 # +
                 elif self.state == STATE.PLUS:
-                    if c.isdigit():
-                        self.state = STATE.NUM
-                    elif c == "+":
+                    # if c.isdigit():
+                    #     self.state = STATE.NUM
+                    if c == "+":
                         currentToken.type = TokenType.INC
                         self.state = STATE.DONE
                     else:
@@ -138,9 +138,9 @@ class Lexer:
 
                 # -
                 elif self.state == STATE.MINUS:
-                    if c.isdigit():
-                        self.state = STATE.NUM
-                    elif c == "-":
+                    # if c.isdigit():
+                    #     self.state = STATE.NUM
+                    if c == "-":
                         currentToken.type = TokenType.DEC
                         self.state = STATE.DONE
                     else:
