@@ -21,7 +21,7 @@ class Lexer:
             self.output = open(output,"w+") if output else open(directory+"/compilador/listing.txt","w+")
 
     def readfile(self):
-        return (ln for ln in open(self.file, 'r'))
+        return (ln + '\n' for ln in open(self.file, 'r'))
     
     def printCurrent(self, token, loc = True):
         location = str(self.lineo) + " " + str(self.posinline - len(token.value) + 1) if loc else ""
@@ -73,6 +73,11 @@ class Lexer:
             ungetChar = False
             c = line[self.posinline]
             self.posinline += 1
+            if(len(currentToken.value)+1 > 31):
+                currentToken.type = TokenType.ERROR
+                self.state = STATE.DONE
+                save = False
+                ungetChar = True
             if self.state == STATE.START:
                 if not c:
                     currentToken.type = TokenType.EOF
