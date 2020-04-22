@@ -13,9 +13,9 @@ class Token:
     def printToken(self):
         funct = {
             TokenType.ID: lambda: "ID, name="+self.value,
-            TokenType.UNUM: lambda: TokenType(self.type).name + ", val="+self.value,
+            TokenType.NUM: lambda: TokenType(self.type).name + ", val="+self.value,
             TokenType.SNUM: lambda: TokenType(self.type).name + ", val="+self.value,
-            TokenType.UFLOAT: lambda: TokenType(self.type).name + ", val="+self.value,
+            TokenType.FLOAT: lambda: TokenType(self.type).name + ", val="+self.value,
             TokenType.SFLOAT: lambda: TokenType(self.type).name + ", val="+self.value,
             TokenType.LT: lambda: self.value,
             TokenType.LOREQ: lambda: self.value,
