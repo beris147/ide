@@ -204,7 +204,7 @@ public class PrimaryController implements Initializable {
     }
     
     @FXML
-    private void openNewFile() throws IOException {
+    private void openNewFile() {
         this.fileHelper.setFile(null);
         this.setTitle();
         this.codeText.replaceText("");
@@ -213,7 +213,7 @@ public class PrimaryController implements Initializable {
     }
 
     @FXML
-    private void saveFile() throws IOException {
+    private void saveFile() {
         this.fileHelper.saveContent(codeText);
         this.setTitle();
         if(this.fileHelper.getFile() != null){
@@ -223,14 +223,14 @@ public class PrimaryController implements Initializable {
     }
     
     @FXML
-    private void saveFileAs() throws IOException {
+    private void saveFileAs() {
         this.fileHelper.setFile(null);
         this.saveFile();
         this.initLineNumberFactory(new ArrayList<>());
     }
     
     @FXML
-    private void openFile() throws IOException {
+    private void openFile() {
         this.fileHelper.openFile();
         if(this.fileHelper.getFile() != null){
             this.fileHelper.writeContent(codeText);
@@ -240,19 +240,19 @@ public class PrimaryController implements Initializable {
     }
     
     @FXML
-    private void undo() throws IOException {
+    private void undo() {
         this.codeText.undo();
         this.showCoords();
     }
     
     @FXML
-    private void redo() throws IOException {
+    private void redo() {
         this.codeText.redo();
         this.showCoords();
     }
     
     @FXML
-    private void run() throws IOException {
+    private void run() {
         
     }
     
@@ -288,16 +288,18 @@ public class PrimaryController implements Initializable {
                 p = Runtime.getRuntime().exec(command + params);
                 stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                String s, output = " ", errors = "";
+                String s, output = "", errors = "";
                 String lastLine = "";
                 List<Integer> lineErros = new ArrayList<>();
+                List<String> out = new ArrayList<>();
                 while ((s = stdInput.readLine()) != null) {
-                    output += s + "\n";
                     if(s.contains("ERROR")){
                         Integer l = Integer.parseInt(lastLine.split(" ")[0]);
                         Integer c = Integer.parseInt(lastLine.split(" ")[1]);
                         errors += s.replace("<ERROR: ", "Error con \"").replace(">", "\"") + " línea: " + l + " columna: " + c+"\n";
                         lineErros.add(l - 1);
+                    } else if(s.contains("<")){
+                        output += lastLine + "\n" + s + "\n";
                     }
                     lastLine = s;
                 }
