@@ -10,6 +10,7 @@ class Lexer:
     file = ""
     lineo = 1
     traceScan = False
+    state = STATE(0)
 
     def __init__(self, directory, file, traceScan = False, output = None):
         self.directory = directory
@@ -47,14 +48,16 @@ class Lexer:
     def run(self):
         tokens = []
         lines = self.readfile()
+        self.state = STATE(0)
         for line in lines:
             self.posinline = 0
             currentToken = Token()
             while(self.posinline < len(line)):
                 token = self.getToken(line, currentToken)
-                if token.type == 0:
+                if self.state != STATE.DONE:
                     continue
                 currentToken = Token()
+                self.state = STATE(0)
                 tokens.append(token)
             self.lineo += 1
         eofToken = Token(TokenType.EOF)
@@ -65,187 +68,178 @@ class Lexer:
             self.output.close()
 
     def getToken(self, line, currentToken):
-        state = STATE(0)
-        while state != STATE.DONE:
+        while self.state != STATE.DONE:
             save = True
             ungetChar = False
             c = line[self.posinline]
             self.posinline += 1
-            if state == STATE.START:
+            if self.state == STATE.START:
                 if not c:
                     currentToken.type = TokenType.EOF
-                    state = STATE.DONE
+                    self.state = STATE.DONE
                     break
-                state = self.checkStart(c)
-                if state == STATE.SPACES:
-                    state = STATE.START
+                self.state = self.checkStart(c)
+                if self.state == STATE.SPACES:
+                    self.state = STATE.START
                     if(c == '\n'):
-                        state = STATE.DONE
+                        self.state = STATE.DONE
                     continue
                 # Unique character
-                elif state == STATE.UNIQUE:
-                    state = STATE.DONE
+                elif self.state == STATE.UNIQUE:
+                    self.state = STATE.DONE
                     currentToken.type = self.uniqueLookUp(c)
             # Identifiers
             else:
-                if state == STATE.ID:
+                if self.state == STATE.ID:
                     if not (c.isalnum() or c == "_"):
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.ID
-                        state = STATE.DONE
+                        self.state = STATE.DONE
 
                 # Numbers
-                elif state == STATE.NUM:
+                elif self.state == STATE.NUM:
                     if c == ".":
-                        state = STATE.DOT
+                        self.state = STATE.DOT
                     elif not c.isdigit():
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.UNUM if currentToken.value[0].isdigit() else TokenType.SNUM
-                        state = STATE.DONE                
+                        self.state = STATE.DONE                
                 # Dot .
-                elif state == STATE.DOT:
+                elif self.state == STATE.DOT:
                     if c.isdigit():
-                        state = STATE.FLOAT
+                        self.state = STATE.FLOAT
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.ERROR
-                        state = STATE.DONE
+                        self.state = STATE.DONE
                 # Float numbers
-                elif state == STATE.FLOAT:
+                elif self.state == STATE.FLOAT:
                     if not c.isdigit():
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.UFLOAT if currentToken.value[0].isdigit() else TokenType.SFLOAT
-                        state = STATE.DONE
+                        self.state = STATE.DONE
 
                 # +
-                elif state == STATE.PLUS:
+                elif self.state == STATE.PLUS:
                     if c.isdigit():
-                        state = STATE.NUM
+                        self.state = STATE.NUM
                     elif c == "+":
                         currentToken.type = TokenType.INC
-                        state = STATE.DONE
+                        self.state = STATE.DONE
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.PLUS
-                        state = STATE.DONE
+                        self.state = STATE.DONE
 
                 # -
-                elif state == STATE.MINUS:
+                elif self.state == STATE.MINUS:
                     if c.isdigit():
-                        state = STATE.NUM
+                        self.state = STATE.NUM
                     elif c == "-":
                         currentToken.type = TokenType.DEC
-                        state = STATE.DONE
+                        self.state = STATE.DONE
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.MINUS
-                        state = STATE.DONE
+                        self.state = STATE.DONE
 
                 # /
-                elif state == STATE.DIAG:
+                elif self.state == STATE.DIAG:
                     if c == "*":
-                        state = STATE.COMM_BLOCK
+                        self.state = STATE.COMM_BLOCK
                         currentToken.value = ""
                         continue
                     elif c == "/":
-                        state = STATE.COMM_LINE
+                        self.state = STATE.COMM_LINE
                         currentToken.value = ""
                         continue
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.DIV
-                        state = STATE.DONE
+                        self.state = STATE.DONE
 
                 # /* Comment block
-                elif state == STATE.COMM_BLOCK:
+                elif self.state == STATE.COMM_BLOCK:
                     if c == "*":
-                        state = STATE.COMM_BLOCK_END
+                        self.state = STATE.COMM_BLOCK_END
                     elif c == '\n':
                         break
                     continue
                 # */ Comment block end
-                elif state == STATE.COMM_BLOCK_END:
+                elif self.state == STATE.COMM_BLOCK_END:
                     if c == "/":
-                        state = STATE.START
+                        self.state = STATE.START
+                    elif c == '\n':
+                        self.state = STATE.COMM_BLOCK
+                        break
                     elif c != "*":
-                        state = STATE.COMM_BLOCK
+                        self.state = STATE.COMM_BLOCK
                     continue
                 # // Comment line
-                elif state == STATE.COMM_LINE:
+                elif self.state == STATE.COMM_LINE:
                     if c == "\n":
+                        self.state = STATE.START
                         break
                     continue
 
                 # < <=
-                elif state == STATE.MINOR:
+                elif self.state == STATE.MINOR:
                     if c == '=':
                         currentToken.type = TokenType.LOREQ
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.LT
-                    state = STATE.DONE
+                    self.state = STATE.DONE
                 # > >=
-                elif state == STATE.BIGGER:
+                elif self.state == STATE.BIGGER:
                     if c == '=':
                         currentToken.type = TokenType.BOREQ
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.BT
-                    state = STATE.DONE
+                    self.state = STATE.DONE
 
                 # == != :=
-                elif state == STATE.EQUAL:
+                elif self.state == STATE.EQUAL:
                     if c == "=":
                         currentToken.type = TokenType.EQ
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.ERROR
-                    state = STATE.DONE
-                elif state == STATE.NOT:
+                    self.state = STATE.DONE
+                elif self.state == STATE.NOT:
                     if c == "=":
                         currentToken.type = TokenType.DIFF
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.ERROR
-                    state = STATE.DONE
-                elif state == STATE.ASSIGN:
+                    self.state = STATE.DONE
+                elif self.state == STATE.ASSIGN:
                     if c == "=":
                         currentToken.type = TokenType.ASSIGN
                     else:
                         save = False
                         ungetChar = True if c else False
                         currentToken.type = TokenType.ERROR
-                    state = STATE.DONE
-
+                    self.state = STATE.DONE
             if save == True:
                 currentToken.value += c
             if ungetChar: self.posinline -= 1
-        if(state == STATE.DONE and currentToken.type != TokenType.EOF):
+        if(self.state == STATE.DONE and currentToken.type != TokenType.EOF):
             if(currentToken.type == TokenType.ID):
                 currentToken.type = self.reservedLookUp(currentToken.value)
             #currentToken.value += '\0'
         if self.traceScan and currentToken.type != 0:
             self.printCurrent(currentToken)
         return currentToken
-
-
-""" OLD METHOD, delete
-def startLexicAnalysis():
-    tokens = []
-    while (True):
-        token = getToken()
-        tokens.append(token)
-        if (token.type == TokenType.EOF):
-            break
-    #print(*tokens)"""
