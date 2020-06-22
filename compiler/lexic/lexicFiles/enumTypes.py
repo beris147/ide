@@ -3,10 +3,10 @@ class TokenType(enum.Enum):
     #IDENTIFICADOR
     ID = 1
     #NUMEROS ENTEROS CON Y SIN SIGNO
-    UNUM = 2
+    NUM = 2
     SNUM = 3
     #NUMEROS FLOTANTES CON Y SIN SIGNO
-    UFLOAT = 4
+    FLOAT = 4
     SFLOAT = 5
     #SÍMBOLOS LÓGICOS
     LT = 6 #LOWER THAN

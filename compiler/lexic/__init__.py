@@ -1,6 +1,6 @@
 import argparse
 import lexicFiles.variables as var
-from lexicFiles.lexicMain import startLexicAnalysis
+from lexicFiles.lexicMain import Lexer
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -20,8 +20,7 @@ requiredNamed.add_argument('-d', '--dir', help='main file directory', required=T
 requiredNamed.add_argument('-f', '--file', help='main file name', required=True)
 args = parser.parse_args()
 
-var.init(args.dir,args.file,args.tracer,args.output)
-startLexicAnalysis() #Lexic Analysis
-if var.TraceScan:
-    var.output.close()
+lex = Lexer(args.dir,args.file,args.tracer,args.output)
+# for debugging + print("compiler is debuggin") lex = Lexer("C:\\Users\\beris\\OneDrive\\Escritorio", "main.txt", True)
+tokens = lex.run()
 print("build: finshed")
