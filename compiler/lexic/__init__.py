@@ -1,5 +1,4 @@
 import argparse
-import lexicFiles.variables as var
 from lexicFiles.lexicMain import Lexer
 
 def str2bool(v):
