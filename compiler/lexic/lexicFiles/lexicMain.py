@@ -11,6 +11,8 @@ class Lexer:
     lineo = 1
     traceScan = False
     state = STATE(0)
+    readed = False
+    lines = ""
 
     def __init__(self, directory, file, traceScan = False, output = None):
         self.directory = directory
@@ -26,7 +28,8 @@ class Lexer:
     def printCurrent(self, token, loc = True):
         location = str(self.lineo) + " " + str(self.posinline - len(token.value) + 1) if loc else ""
         print(location + "\n" + token.printToken(), end = '')
-        self.output.write(location + "\n" + token.printToken())
+        if self.traceScan:
+            self.output.write(location + "\n" + token.printToken())
     
     def checkStart(self, c):
         if c.isdigit():
@@ -44,35 +47,33 @@ class Lexer:
     def uniqueLookUp(self, c):
         unique = uniqueCharacter.get(c)
         return unique if unique else TokenType.ERROR
-
-    def run(self):
-        tokens = []
-        lines = self.readfile()
-        self.state = STATE(0)
-        for line in lines:
-            self.posinline = 0
-            currentToken = Token()
-            while(self.posinline < len(line)):
-                token = self.getToken(line, currentToken)
-                if self.state != STATE.DONE:
-                    continue
-                currentToken = Token()
-                self.state = STATE(0)
-                tokens.append(token)
+    
+    def getNextChar(self):
+        #File not readed yet
+        if self.readed == False:
+            self.lines = list(self.readfile())
+            self.readed = True
+        #end of line
+        if self.posinline >= len(self.lines[self.lineo-1]):
             self.lineo += 1
-        eofToken = Token(TokenType.EOF)
-        tokens.append(eofToken)
-        self.printCurrent(eofToken, False)
-        return tokens
-        if self.traceScan:
-            self.output.close()
+            self.posinline = 0
+        #end of file
+        if self.lineo-1 >= len(self.lines):
+            return None
+        #next char
+        c = self.lines[self.lineo-1][self.posinline]
+        self.posinline += 1
+        return c
 
-    def getToken(self, line, currentToken):
+    def getToken(self):
+        currentToken = Token()
+        self.state = STATE(0)
         while self.state != STATE.DONE:
             save = True
             ungetChar = False
-            c = line[self.posinline]
-            self.posinline += 1
+            c = self.getNextChar()
+            #c = line[self.posinline]
+            #self.posinline += 1
             if(len(currentToken.value)+1 > 31):
                 currentToken.type = TokenType.ERROR
                 self.state = STATE.DONE
@@ -174,8 +175,8 @@ class Lexer:
                 elif self.state == STATE.COMM_BLOCK:
                     if c == "*":
                         self.state = STATE.COMM_BLOCK_END
-                    elif c == '\n':
-                        break
+                    #elif c == '\n':
+                    #    break
                     continue
                 # */ Comment block end
                 elif self.state == STATE.COMM_BLOCK_END:
@@ -244,7 +245,6 @@ class Lexer:
         if(self.state == STATE.DONE and currentToken.type != TokenType.EOF):
             if(currentToken.type == TokenType.ID):
                 currentToken.type = self.reservedLookUp(currentToken.value)
-            #currentToken.value += '\0'
         if self.traceScan and currentToken.type != 0:
             self.printCurrent(currentToken)
         return currentToken
