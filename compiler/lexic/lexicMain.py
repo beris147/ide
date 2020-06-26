@@ -3,7 +3,7 @@ from pathlib import Path
 from .token import Token
 from .enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
 
-class Lexer:
+class Lex:
     posinline = 0
     directory = ""
     output = ""
