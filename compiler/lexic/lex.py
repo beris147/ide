@@ -4,20 +4,15 @@ from .token import Token
 from .enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
 
 class Lex:
-    posinline = 0
-    directory = ""
-    output = ""
-    file = ""
-    lineo = 1
-    traceScan = False
-    state = STATE(0)
-    readed = False
-    lines = ""
-
     def __init__(self, directory, file, traceScan = False, output = None):
         self.directory = directory
         self.file = directory + "/" + file
         self.traceScan = traceScan
+        self.posinline = 0
+        self.lineo = 1
+        self.state = STATE(0)
+        self.readed = False
+        self.lines = list()
         if traceScan:
             Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
             self.output = open(output,"w+") if output else open(directory+"/compilador/listing.txt","w+")
