@@ -1,6 +1,6 @@
 import argparse
-from lexic.lexicFiles.lexicMain import Lexer
-from lexic.lexicFiles.enumTypes import TokenType
+from lexic.lexicMain import Lexer
+from lexic.enumTypes import TokenType
 
 def str2bool(v):
     if isinstance(v, bool):
