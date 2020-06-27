@@ -85,8 +85,8 @@ class Lex:
                 self.state = self.checkStart(c)
                 if self.state == STATE.SPACES:
                     self.state = STATE.START
-                    if(c == '\n'):
-                        self.state = STATE.DONE
+                    #if(c == '\n'):
+                    #    self.state = STATE.DONE
                     continue
                 # Unique character
                 elif self.state == STATE.UNIQUE:
