@@ -32,11 +32,55 @@ class Parser:
         self.match(TokenType.MAIN)
         t.add_child(Tree("OPENC"))
         self.match(TokenType.OPENC)
-        # statementList()
+        t.add_child(self.statementsList())
         t.add_child(self.sentencesList())
 
         t.add_child(Tree("CLOSEC"))
         self.match(TokenType.CLOSEC)
+        return t
+
+    # stmt-list→ { stmt; }
+    def statementsList(self):
+        t = Tree("STMT-LIST")
+        options = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        while self.token.type in options:
+            t.add_child(self.statement())
+        return t
+
+    # stmt → type var-list
+    def statement(self):
+        t = Tree("STATEMENT")
+        t.add_child(self.varType())
+        t.add_child(self.varsList())
+        return t
+
+    # type → int | float | bool
+    def varType(self):
+        t = Tree("TYPE")
+        if self.token.type == TokenType.INT:
+            t.add_child(Tree("INT"))
+            self.match(TokenType.INT)
+        elif self.token.type == TokenType.REAL:
+            t.add_child(Tree("REAL"))
+            self.match(TokenType.REAL)
+        elif self.token.type == TokenType.BOOLEAN:
+            t.add_child(Tree("BOOLEAN"))
+            self.match(TokenType.BOOLEAN)
+        return t
+    # vars-list → { identificador, } identificador
+    def varsList(self):
+        t = Tree("VAR-LIST")
+        while self.token.type == TokenType.ID:
+            id = Tree("ID")
+            id.add_child(Tree(self.token.value))
+            self.match(TokenType.ID)
+            t.add_child(id)
+
+            if self.token.type == TokenType.COMMA:
+                self.match(TokenType.COMMA)
+            else:
+                break
+        self.match(TokenType.SEMI);
         return t
 
     # sent-list → { sent }
