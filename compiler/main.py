@@ -1,6 +1,8 @@
 import argparse
 from lexic.lex import Lex
 from lexic.enumTypes import TokenType
+from syntactic.parser import Parser
+from syntactic.tree import Tree
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -35,4 +37,7 @@ if args.parser == False:
         token = lex.getToken()
         if token.type == TokenType.EOF:
             break
+else:
+    parser = Parser(lex, TokenType)
+    parser.parse()
 print("build: finshed")
