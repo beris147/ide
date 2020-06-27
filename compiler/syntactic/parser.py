@@ -92,6 +92,10 @@ class Parser:
         t = Tree("SENTENCE")
         if self.token.type == TokenType.IF:
             t.add_child(self.select())
+        elif self.token.type == TokenType.CIN:
+            t.add_child(self.sent_cin())
+        elif self.token.type == TokenType.COUT:
+            t.add_child(self.sent_cout())
         elif self.token.type == TokenType.OPENC:
             t.add_child(self.block())
         elif self.token.type == TokenType.WHILE:
@@ -128,7 +132,17 @@ class Parser:
         self.match(TokenType.CIN, t, Tree("CIN"))
         id = Tree("ID")
         self.match(TokenType.ID, id, Tree(self.token.value))
-        t.add_child(id)
+        # FIXME:
+        self.match(TokenType.SEMI, t, id)
+        return t
+    
+    # sent-cout → cout exp ;
+    def sent_cout(self):
+        t = Tree("SENT-COUT")
+        self.match(TokenType.COUT, t, Tree("COUT"))
+        # FIXME:
+        exp = self.exp()
+        self.match(TokenType.SEMI, t, exp)
         return t
 
     #  select → if ( exp ) then block [else block] end
