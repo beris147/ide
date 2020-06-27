@@ -37,6 +37,6 @@ if args.parser == False:
         if token.type == TokenType.EOF:
             break
 else:
-    parser = Parser(lex, TokenType)
+    parser = Parser(lex)
     parser.parse()
 print("build: finshed")
