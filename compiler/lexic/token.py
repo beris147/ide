@@ -1,4 +1,7 @@
-from .enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
+import sys, os
+sys.path.append(os.path.relpath("../enumTypes"))
+
+from enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
 class Token:
     type = 0
     value = 0

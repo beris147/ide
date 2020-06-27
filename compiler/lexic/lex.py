@@ -1,7 +1,10 @@
+import sys, os
+sys.path.append(os.path.relpath("../enumTypes.py"))
+
 from pathlib import Path 
 #Local imports
 from .token import Token
-from .enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
+from enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
 
 class Lex:
     def __init__(self, directory, file, traceScan = False, output = None):
