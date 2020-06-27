@@ -6,9 +6,10 @@ class Token:
     type = 0
     value = 0
 
-    def __init__(self, type=0, value=""):
+    def __init__(self, type=0, value="", lineo=""):
         self.type = type
         self.value = value
+        self.lineo = lineo
 
     def __str__(self):
         return str(self.printToken())
@@ -55,4 +56,4 @@ class Token:
             TokenType.ERROR: lambda: "ERROR: " + self.value,
             TokenType.EOF: lambda: "EOF"
         }.get(self.type, lambda: "UNKNOWN: token={}, val={}".format(TokenType(self.type).name, self.value))
-        return "<"+funct()+">\n"
+        return "<"+funct()+">"

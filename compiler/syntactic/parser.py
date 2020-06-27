@@ -20,10 +20,11 @@ class Parser:
         return tree
 
     def match(self, expected, parent=None, child=None):
+        aux = self.token
         if self.token.type == expected:
             self.token = self.lex.getToken()
             if parent is not None:
-                parent.add_child(child)
+                parent.add_child(Tree(aux))
         else:
             syntaxError(f' expected {expected} received {self.token}', self.lex.lineo)
 
@@ -68,15 +69,15 @@ class Parser:
     def varsList(self):
         t = Tree("VAR-LIST")
         while self.token.type == TokenType.ID:
-            id = Tree("ID")
-            self.match(TokenType.ID, id, Tree(self.token.value))
-            t.add_child(id)
+            #id = Tree("ID")
+            self.match(TokenType.ID, t, Tree(self.token.value))
+            #t.add_child(id)
 
             if self.token.type == TokenType.COMMA:
                 self.match(TokenType.COMMA)
             else:
                 break
-        self.match(TokenType.SEMI);
+        self.match(TokenType.SEMI)
         return t
 
     # sent-list → { sent }
@@ -113,22 +114,22 @@ class Parser:
     # assign → id := exp ;  
     def assign(self):
         t = Tree("SENT-ASSIGN")
-        id = Tree("ID")
-        self.match(TokenType.ID, id, Tree(self.token.value))
+        #id = Tree("ID")
+        self.match(TokenType.ID, t, Tree(self.token.value))
         if self.token.type == TokenType.ASSIGN:
-            self.match(TokenType.ASSIGN, id, Tree("ASSIGN"))
-            id.add_child(self.exp())
-        self.match(TokenType.SEMI, id, Tree("SEMI"))
-        t.add_child(id)
+            self.match(TokenType.ASSIGN, t, Tree("ASSIGN"))
+            t.add_child(self.exp())
+        self.match(TokenType.SEMI, t, Tree("SEMI"))
+        #t.add_child(id)
         return t
 
     # sent-cin → cin id ;
     def sent_cin(self):
         t = Tree("SENT-CIN")
         self.match(TokenType.CIN, t, Tree("CIN"))
-        id = Tree("ID")
-        self.match(TokenType.ID, id, Tree(self.token.value))
-        t.add_child(id)
+        #id = Tree("ID")
+        self.match(TokenType.ID, t, Tree(self.token.value))
+        #t.add_child(id)
         return t
 
     #  select → if ( exp ) then block [else block] end

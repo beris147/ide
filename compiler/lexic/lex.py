@@ -70,6 +70,7 @@ class Lex:
             save = True
             ungetChar = False
             c = self.getNextChar()
+            currentToken.lineo = self.lineo
             #c = line[self.posinline]
             #self.posinline += 1
             if(len(currentToken.value)+1 > 31):
