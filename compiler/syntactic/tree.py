@@ -1,16 +1,45 @@
+from collections import deque 
+
+def printSpaces(Stack):
+    for _ in range(len(Stack)-1):
+        print("\t", end='')
+
 class Tree:
-    def __init__(self, token = None, lineo = None, children=None):
-        self.token = token
+    def __init__(self, data, lineo = "", nodeKind = None):
+        self.data = data
         self.children = []
         self.lineo = lineo
-        
-        if children is not None:
-            for child in children:
-                self.add_child(child)
-
-    def __repr__(self):
-        return self.token
 
     def add_child(self, node):
         assert isinstance(node, Tree)
         self.children.append(node)
+
+    def printPreOrder(self): 
+        Stack = deque([]) 
+        Preorder =[] 
+        print(self.data, self.lineo)
+        Preorder.append(self.data)
+        Brackets = list()
+        Stack.append(self) 
+        while len(Stack)>0:
+            flag = 0
+            if len((Stack[len(Stack)-1]).children)== 0: 
+                Stack.pop() 
+            else:
+                parent = Stack[len(Stack)-1]
+                if parent not in Brackets:
+                    Brackets.append(parent)
+                    printSpaces(Stack)
+                    print("{")
+            for i in range(0, len(parent.children)): 
+                if parent.children[i].data not in Preorder: 
+                    flag = 1
+                    Stack.append(parent.children[i])
+                    printSpaces(Stack)
+                    print(parent.children[i].data, parent.children[i].lineo)
+                    Preorder.append(parent.children[i].data) 
+                    break
+            if flag == 0:
+                printSpaces(Stack)
+                print("}")
+                Stack.pop()

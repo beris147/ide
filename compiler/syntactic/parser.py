@@ -5,8 +5,7 @@ from .tree import Tree
 from enumTypes import TokenType
 
 def syntaxError(msg, lineo):
-    print("\n>>>")
-    print(f'Syntaxt error at line {lineo} {msg}' )
+    print(f'>>>Syntaxt error at line {lineo} {msg}' )
 
 class Parser:
     def __init__(self, lex):
@@ -14,10 +13,11 @@ class Parser:
 
     def parse(self):
         self.token = self.lex.getToken()
-        t = self.program()
+        tree = self.program()
+        tree.printPreOrder()
         if self.token.type != TokenType.EOF:
-            print("Code ends before file")
-        return t
+            syntaxError("Code ends before file", self.lex.lineo)
+        return tree
 
     def match(self, expected):
         if self.token.type == expected:
@@ -27,9 +27,11 @@ class Parser:
 
     # programa → main{ lista-declaración lista-sentencias }
     def program(self):
-        t = Tree()
+        t = Tree("program")
         self.match(TokenType.MAIN)
+        t.add_child(Tree(TokenType.MAIN))
         self.match(TokenType.OPENC)
+        t.add_child(Tree(TokenType.OPENC))
         # statementList()
         # sentencesList()
         self.match(TokenType.CLOSEC)
