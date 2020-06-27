@@ -16,9 +16,9 @@ class Tree:
 
     def printPreOrder(self): 
         Stack = deque([]) 
-        Preorder =[] 
+        Preorder = [] 
         print(self.data, self.lineo)
-        Preorder.append(self.data)
+        Preorder.append(self)
         Brackets = list()
         Stack.append(self) 
         while len(Stack)>0:
@@ -32,12 +32,12 @@ class Tree:
                     printSpaces(Stack)
                     print("{")
             for i in range(0, len(parent.children)): 
-                if parent.children[i].data not in Preorder: 
+                if parent.children[i] not in Preorder: 
                     flag = 1
                     Stack.append(parent.children[i])
                     printSpaces(Stack)
                     print(parent.children[i].data, parent.children[i].lineo)
-                    Preorder.append(parent.children[i].data) 
+                    Preorder.append(parent.children[i]) 
                     break
             if flag == 0:
                 printSpaces(Stack)

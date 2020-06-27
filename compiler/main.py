@@ -12,7 +12,7 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
-
+"""
 parser = argparse.ArgumentParser(description='tiny lexical analyzer')
 parser.add_argument('-D', '--debugg', type=str2bool, nargs='?', const=True, default=False, help='debugg for devs')
 parser.add_argument('-p', '--parser', type=str2bool, nargs='?', const=True, default=False, help='false for an only lexical compiler')
@@ -43,5 +43,5 @@ else:
 lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", False)
 parser = Parser(lex)
 parser.parse()
-"""
+#"""
 print("build: finshed")
