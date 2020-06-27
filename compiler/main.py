@@ -1,8 +1,6 @@
 import argparse
 from lexic.lex import Lex
-from lexic.enumTypes import TokenType
-from syntactic.parser import Parser
-from syntactic.tree import Tree
+from enumTypes import TokenType
 
 def str2bool(v):
     if isinstance(v, bool):

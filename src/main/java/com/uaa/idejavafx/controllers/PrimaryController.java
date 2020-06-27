@@ -284,7 +284,7 @@ public class PrimaryController implements Initializable {
                 if (Main.compilerDir == null) {
                     Main.setCompilerDir();
                 }
-                String command = Main.python+Main.compilerDir+"/main.py", params = " -d"+dir+" -f"+name+" -s";
+                String command = Main.python+Main.compilerDir+"/main.py", params = " -d"+dir+" -f"+name+" -s yes";
                 p = Runtime.getRuntime().exec(command + params);
                 stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
