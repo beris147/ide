@@ -39,4 +39,9 @@ if args.parser == False:
 else:
     parser = Parser(lex)
     parser.parse()
+"""
+lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", False)
+parser = Parser(lex)
+parser.parse()
+"""
 print("build: finshed")
