@@ -14,6 +14,9 @@ class Token:
     def __str__(self):
         return str(self.printToken())
 
+    def __repr__(self):
+        return str(dict(type = str(self.type.name), value = self.value))
+
     def printToken(self):
         funct = {
             TokenType.ID: lambda: "ID: "+self.value,
