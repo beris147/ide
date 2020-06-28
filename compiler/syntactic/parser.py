@@ -1,35 +1,55 @@
 import sys, os
 sys.path.append(os.path.relpath("../enumTypes.py"))
+sys.path.append(os.path.relpath("../lexic"))
 
 from .tree import Tree
 from enumTypes import TokenType
+from lexic.token import Token
 
-def syntaxError(msg, lineo):
-    print(f'>>>Syntaxt error at line {lineo} {msg}' )
+def inc_dec(last, t, inc):
+    assign = Token(TokenType.ASSIGN, ":=", last.lineo)
+    inc_dec = Token(TokenType.PLUS, "+", last.lineo) if inc == True else Token(TokenType.MINUS, "-", last.lineo)
+    one = Token(TokenType.NUM, "1", last.lineo)
+    t.add_child(Tree(assign))
+    t.add_child(Tree(last))
+    t.add_child(Tree(inc_dec))
+    t.add_child(Tree(one))
 
 class Parser:
     def __init__(self, lex):
         self.lex = lex
+        self.panic = False
 
     def parse(self):
         self.token = self.lex.getToken()
         tree = self.program()
         tree.printPreOrder()
         if self.token.type != TokenType.EOF:
-            syntaxError("Code ends before file", self.lex.lineo)
+            self.syntaxError("Code ends before file", self.lex.lineo)
         return tree
 
+    def syntaxError(self, msg, lineo):
+        if self.panic == False:
+            self.panic = True
+            print(f'>>>Syntaxt error at line {lineo} {msg}')
+
     def match(self, expected, parent=None, child=None):
-        aux = self.token
-        if self.token.type == expected:
+        self.last = self.token
+        if self.panic == True:
+            if self.token.type == TokenType.SEMI:
+                self.panic = False
+                self.token = self.lex.getToken()
+            else:
+                return
+        elif self.token.type == expected:
             self.token = self.lex.getToken()
             if parent is not None:
                 if child is None:
-                    parent.add_child(Tree(aux))
+                    parent.add_child(Tree(self.last))
                 else:
                     parent.add_child(child)
         else:
-            syntaxError(f' expected {expected} received {self.token}', self.lex.lineo)
+            self.syntaxError(f' expected {expected} received {self.token}', self.lex.lineo)
 
     # programa → main '{' lista-declaración lista-sentencias '}'
     def program(self):
@@ -124,6 +144,15 @@ class Parser:
         if self.token.type == TokenType.ASSIGN:
             self.match(TokenType.ASSIGN, t)
             t.add_child(self.exp())
+        elif self.token.type == TokenType.INC:
+            inc_dec(self.last, t, True)
+            self.match(TokenType.INC)
+        elif self.token.type == TokenType.DEC:
+            inc_dec(self.last, t, False)
+            self.match(TokenType.DEC)
+        else:
+            self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
+            self.token = self.lex.getToken()
         self.match(TokenType.SEMI)
         #t.add_child(id)
         return t
@@ -191,7 +220,7 @@ class Parser:
         if self.token.type in options:
             self.match(self.token.type, t)
         else:
-            syntaxError(f'unexpected token {self.token}', self.lex.lineo)
+            self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.token = self.lex.getToken()
         return t
 
@@ -200,8 +229,10 @@ class Parser:
         t = Tree("SIMPLE EXP")
         t.add_child(self.term())
         while(self.token.type in [TokenType.PLUS, TokenType.MINUS, TokenType.INC, TokenType.DEC]):
+            type = self.token.type
             t.add_child(self.add_op())
-            t.add_child(self.term())
+            if type is not TokenType.INC and type is not TokenType.DEC:
+                t.add_child(self.term())
         return t
 
     # suma-op → + | - | ++ | --
@@ -211,11 +242,13 @@ class Parser:
         if self.token.type in options:
             self.match(self.token.type, t)
         elif self.token.type == TokenType.INC: #change this for a := a + 1
-            self.match(TokenType.INC, t)
+            inc_dec(self.last, t, True)
+            self.match(TokenType.INC)
         elif self.token.type == TokenType.DEC: #change this for a := a - 1
-            self.match(TokenType.DEC, t)
+            inc_dec(self.last, t, False)
+            self.match(TokenType.DEC)
         else:
-            syntaxError(f'unexpected token {self.token}', self.lex.lineo)
+            self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.token = self.lex.getToken()
         return t
 
@@ -235,7 +268,7 @@ class Parser:
         if self.token.type in options:
             self.match(self.token.type, t)
         else:
-            syntaxError(f'unexpected token {self.token}', self.lex.lineo)
+            self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.token = self.lex.getToken()
         return t
 
@@ -251,6 +284,6 @@ class Parser:
         elif self.token.type == TokenType.ID:
             self.match(TokenType.ID, t)
         else:
-            syntaxError(f'unexpected token {self.token}', self.lex.lineo)
+            self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.token = self.lex.getToken()
         return t
