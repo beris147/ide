@@ -356,7 +356,7 @@ public class PrimaryController implements Initializable {
     
     @FXML
     private void runSyntactic(){
-        this.prepare("Compilando sintactico...", "");
+        this.prepare("Compilando sintactico...", "-p");
         this.syntaxOutput(); // Solo contiene errores
     }
     
