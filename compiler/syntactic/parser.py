@@ -1,7 +1,8 @@
 import sys, os
-sys.path.append(os.path.relpath("../enumTypes.py"))
+sys.path.append(os.path.relpath("../enumTypes"))
 sys.path.append(os.path.relpath("../lexic"))
 
+from pathlib import Path 
 from .tree import Tree
 from enumTypes import TokenType
 from lexic.token import Token
@@ -16,22 +17,30 @@ def inc_dec(last, t, inc):
     t.add_child(Tree(one))
 
 class Parser:
-    def __init__(self, lex):
+    def __init__(self, lex, directory, traceParser = False):
         self.lex = lex
         self.panic = False
+        self.directory = directory
+        self.traceParser = traceParser
+        Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
+        self.output = open(directory+"/compilador/syntactic.o","w+")
 
     def parse(self):
         self.token = self.lex.getToken()
         tree = self.program()
-        tree.printPreOrder()
+        #if self.traceParser:
+        #    tree.printPreOrder()
         if self.token.type != TokenType.EOF:
             self.syntaxError("Code ends before file", self.lex.lineo)
         return tree
 
     def syntaxError(self, msg, lineo):
+        out = f'>>>Syntaxt error at line {lineo} {msg}'
         if self.panic == False:
             self.panic = True
-            print(f'>>>Syntaxt error at line {lineo} {msg}')
+            self.output.write(out + "\n")
+            if self.traceParser:
+                print(out)
 
     def match(self, expected, parent=None, child=None):
         self.last = self.token

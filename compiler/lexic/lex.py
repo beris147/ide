@@ -7,7 +7,7 @@ from .token import Token
 from enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
 
 class Lex:
-    def __init__(self, directory, file, traceScan = False, output = None):
+    def __init__(self, directory, file, traceScan = False):
         self.directory = directory
         self.file = directory + "/" + file
         self.traceScan = traceScan
@@ -16,18 +16,19 @@ class Lex:
         self.state = STATE(0)
         self.readed = False
         self.lines = list()
-        if traceScan:
-            Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
-            self.output = open(output,"w+") if output else open(directory+"/compilador/listing.txt","w+")
+        Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
+        self.output = open(directory+"/compilador/lexical.o","w+")
 
     def readfile(self):
         return (ln + '\n' for ln in open(self.file, 'r'))
     
     def printCurrent(self, token, loc = True):
         location = str(self.lineo) + " " + str(self.posinline - len(token.value) + 1) if loc else ""
-        print(location + "\n" + token.printToken(), end = '')
+        self.output.write(location + "\n" + token.printToken() + "\n")
         if self.traceScan:
-            self.output.write(location + "\n" + token.printToken())
+            print(location + "\n" + token.printToken())
+        if(token.type == TokenType.EOF):
+            self.output.close()
     
     def checkStart(self, c):
         if c.isdigit():
@@ -244,6 +245,6 @@ class Lex:
         if(self.state == STATE.DONE and currentToken.type != TokenType.EOF):
             if(currentToken.type == TokenType.ID):
                 currentToken.type = self.reservedLookUp(currentToken.value)
-        if self.traceScan and currentToken.type != 0:
+        if currentToken.type != 0:
             self.printCurrent(currentToken)
         return currentToken
