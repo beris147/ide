@@ -1,6 +1,7 @@
 import sys, os
 sys.path.append(os.path.relpath("../lexic"))
 
+from pathlib import Path
 from collections import deque 
 from lexic.token import Token
 
@@ -20,9 +21,10 @@ class Tree(dict):
         assert isinstance(node, Tree)
         self.children.append(node)
 
-    def build(self):
+    def build(self, directory):
         binary = str(self).replace("'", "\"")
-        with open("compilador/tree.json", "w") as fileJSON:
+        Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
+        with open(directory+"/compilador/tree.json", "w") as fileJSON:
             fileJSON.write(binary)
 
     def printPreOrder(self): 
