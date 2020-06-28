@@ -9,14 +9,21 @@ def printSpaces(Stack):
     for _ in range(len(Stack)-1):
         print("\t", end='')
 
-class Tree:
+class Tree(dict):
     def __init__(self, data):
+        super().__init__()
+        self.__dict__ = self
         self.data = data
         self.children = []
 
     def add_child(self, node):
         assert isinstance(node, Tree)
         self.children.append(node)
+
+    def build(self):
+        binary = str(self).replace("'", "\"")
+        with open("compilador/tree.json", "w") as fileJSON:
+            fileJSON.write(binary)
 
     def printPreOrder(self): 
         Stack = deque([]) 
