@@ -24,19 +24,22 @@ class Parser:
         if self.token.type == expected:
             self.token = self.lex.getToken()
             if parent is not None:
-                parent.add_child(Tree(aux))
+                if child is None:
+                    parent.add_child(Tree(aux))
+                else:
+                    parent.add_child(child)
         else:
             syntaxError(f' expected {expected} received {self.token}', self.lex.lineo)
 
     # programa → main '{' lista-declaración lista-sentencias '}'
     def program(self):
         t = Tree("program")
-        self.match(TokenType.MAIN, t, Tree("MAIN"))
-        self.match(TokenType.OPENC, t, Tree("OPENC"))
+        self.match(TokenType.MAIN, t)
+        self.match(TokenType.OPENC, t)
         t.add_child(self.statementsList())
         t.add_child(self.sentencesList())
 
-        self.match(TokenType.CLOSEC, t, Tree("CLOSEC"))
+        self.match(TokenType.CLOSEC, t)
         return t
 
     # stmt-list→ { stmt; }
@@ -58,11 +61,11 @@ class Parser:
     def varType(self):
         t = Tree("TYPE")
         if self.token.type == TokenType.INT:
-            self.match(TokenType.INT, t, Tree("INT"))
+            self.match(TokenType.INT, t)
         elif self.token.type == TokenType.REAL:
-            self.match(TokenType.REAL, t, Tree("REAL"))
+            self.match(TokenType.REAL, t)
         elif self.token.type == TokenType.BOOLEAN:
-            self.match(TokenType.BOOLEAN, t, Tree("BOOLEAN"))
+            self.match(TokenType.BOOLEAN, t)
         return t
 
     # vars-list → { identificador, } identificador
@@ -70,9 +73,8 @@ class Parser:
         t = Tree("VAR-LIST")
         while self.token.type == TokenType.ID:
             #id = Tree("ID")
-            self.match(TokenType.ID, t, Tree(self.token.value))
+            self.match(TokenType.ID, t)
             #t.add_child(id)
-
             if self.token.type == TokenType.COMMA:
                 self.match(TokenType.COMMA)
             else:
@@ -93,6 +95,10 @@ class Parser:
         t = Tree("SENTENCE")
         if self.token.type == TokenType.IF:
             t.add_child(self.select())
+        elif self.token.type == TokenType.CIN:
+            t.add_child(self.sent_cin())
+        elif self.token.type == TokenType.COUT:
+            t.add_child(self.sent_cout())
         elif self.token.type == TokenType.OPENC:
             t.add_child(self.block())
         elif self.token.type == TokenType.WHILE:
@@ -104,10 +110,10 @@ class Parser:
     # iteration → while ( exp )  block
     def iteration(self):
         t = Tree("ITERATION")
-        self.match(TokenType.WHILE, t, Tree("WHILE"))
-        self.match(TokenType.OPENP, t, Tree("OPENP"))
+        self.match(TokenType.WHILE, t)
+        self.match(TokenType.OPENP, t)
         t.add_child(self.exp())
-        self.match(TokenType.CLOSEP, t, Tree("CLOSEP"))
+        self.match(TokenType.CLOSEP, t)
         t.add_child(self.block())
         return t
 
@@ -115,48 +121,58 @@ class Parser:
     def assign(self):
         t = Tree("SENT-ASSIGN")
         #id = Tree("ID")
-        self.match(TokenType.ID, t, Tree(self.token.value))
+        self.match(TokenType.ID, t)
         if self.token.type == TokenType.ASSIGN:
-            self.match(TokenType.ASSIGN, t, Tree("ASSIGN"))
+            self.match(TokenType.ASSIGN, t)
             t.add_child(self.exp())
-        self.match(TokenType.SEMI, t, Tree("SEMI"))
+        self.match(TokenType.SEMI, t)
         #t.add_child(id)
         return t
 
     # sent-cin → cin id ;
     def sent_cin(self):
         t = Tree("SENT-CIN")
-        self.match(TokenType.CIN, t, Tree("CIN"))
+        self.match(TokenType.CIN, t)
         #id = Tree("ID")
-        self.match(TokenType.ID, t, Tree(self.token.value))
-        #t.add_child(id)
+        self.match(TokenType.ID, t)
+        # FIXME:
+        self.match(TokenType.SEMI, t)
+        return t
+    
+    # sent-cout → cout exp ;
+    def sent_cout(self):
+        t = Tree("SENT-COUT")
+        self.match(TokenType.COUT, t)
+        # FIXME:
+        exp = self.exp()
+        self.match(TokenType.SEMI, t, exp)
         return t
 
     #  select → if ( exp ) then block [else block] end
     def select(self):
         t = Tree("SELECT")
-        self.match(TokenType.IF, t, Tree("IF"))
+        self.match(TokenType.IF, t)
 
-        self.match(TokenType.OPENP, t, Tree("OPENP"))
+        self.match(TokenType.OPENP, t)
 
         t.add_child(self.exp())
 
-        self.match(TokenType.CLOSEP, t, Tree("CLOSEP"))
+        self.match(TokenType.CLOSEP, t)
 
-        self.match(TokenType.THEN, t, Tree("THEN"))
+        self.match(TokenType.THEN, t)
         t.add_child(self.block())
         if(self.token.type == TokenType.ELSE):
-            self.match(TokenType.ELSE, t, Tree("ELSE"))
+            self.match(TokenType.ELSE, t)
             t.add_child(self.block())
-        self.match(TokenType.END, t, Tree("END"))
+        self.match(TokenType.END, t)
         return t
 
     # block → “{“ sent-list “ }”
     def block(self):
         t = Tree("BLOCK")
-        self.match(TokenType.OPENC, t, Tree("OPENC"))
+        self.match(TokenType.OPENC, t)
         t.add_child(self.sentencesList())
-        self.match(TokenType.CLOSEC, t, Tree("CLOSEC"))
+        self.match(TokenType.CLOSEC, t)
         return t
 
     #exp → exp-simple [relación exp-simple]
@@ -174,7 +190,7 @@ class Parser:
         t = Tree("RELATION")
         options = [TokenType.LOREQ, TokenType.LT, TokenType.BT, TokenType.BOREQ, TokenType.EQ, TokenType.DIFF]
         if self.token.type in options:
-            self.match(self.token.type, t, Tree(self.token.value))
+            self.match(self.token.type, t)
         else:
             syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.token = self.lex.getToken()
@@ -194,11 +210,11 @@ class Parser:
         t = Tree("ADD")
         options = [TokenType.PLUS, TokenType.MINUS]
         if self.token.type in options:
-            self.match(self.token.type, t, Tree(self.token.value))
+            self.match(self.token.type, t)
         elif self.token.type == TokenType.INC: #change this for a := a + 1
-            self.match(TokenType.INC, t, Tree(self.token.value))
+            self.match(TokenType.INC, t)
         elif self.token.type == TokenType.DEC: #change this for a := a - 1
-            self.match(TokenType.DEC, t, Tree(self.token.value))
+            self.match(TokenType.DEC, t)
         else:
             syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.token = self.lex.getToken()
@@ -218,7 +234,7 @@ class Parser:
         t = Tree("MULT")
         options = [TokenType.MULT, TokenType.DIV, TokenType.MOD]
         if self.token.type in options:
-            self.match(self.token.type, t, Tree(self.token.value))
+            self.match(self.token.type, t)
         else:
             syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.token = self.lex.getToken()
@@ -232,9 +248,9 @@ class Parser:
             t.add_child(self.exp())
             self.match(TokenType.CLOSEP)
         elif self.token.type == TokenType.NUM:
-            self.match(TokenType.NUM, t, Tree(self.token.value))
+            self.match(TokenType.NUM, t)
         elif self.token.type == TokenType.ID:
-            self.match(TokenType.ID, t, Tree(self.token.value))
+            self.match(TokenType.ID, t)
         else:
             syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.token = self.lex.getToken()
