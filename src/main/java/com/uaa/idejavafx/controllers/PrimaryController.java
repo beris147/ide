@@ -1,9 +1,16 @@
 package com.uaa.idejavafx.controllers;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.uaa.classes.FileHelper;
 import com.uaa.classes.LineError;
 import com.uaa.idejavafx.Main;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -15,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Scanner;
@@ -30,11 +38,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -47,6 +56,8 @@ import org.reactfx.Subscription;
 public class PrimaryController implements Initializable {
     @FXML
     private CodeArea codeText, outputArea, errorArea, lexicalArea;
+    @FXML
+    private TreeView<String> syntacticTree;
     @FXML
     private Tab tabTitle, outputTab, errorTab;
     @FXML
@@ -275,7 +286,6 @@ public class PrimaryController implements Initializable {
         selectionModel.select(outputTab);
         String s, output = "", errors = "", lastLine = "";
         List<Integer> lineErrors = new ArrayList<>();
-        List<String> out = new ArrayList<>();
         Path lexo = Paths.get(this.fileHelper.getFile().getParent() + "/compilador/lexical.o").toAbsolutePath();
         try (Scanner scanner = new Scanner(lexo).useDelimiter("\n")) {
             while (scanner.hasNext()) {
@@ -322,8 +332,69 @@ public class PrimaryController implements Initializable {
             selectionModel.select(outputTab);
             outputArea.appendText("build: ok");
         }
+
+        // Read json file
+        JsonParser parser = new JsonParser();
+        try {
+            JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/tree.json"));
+            // Set tree root
+            this.syntacticTree.setRoot(createTree(json, null));
+
+        } catch(FileNotFoundException ex) {}
+
         errorArea.appendText(errors);
         this.initLineNumberFactory(lineErrors);
+    }
+
+    private static TreeItem<String> createTree(JsonElement element, TreeItem<String> parent) {
+        if (element.isJsonNull())
+            // Empty
+            return new TreeItem<String>("Null");
+        
+        else if (element.isJsonPrimitive()) {
+            // Get property
+            JsonPrimitive property = element.getAsJsonPrimitive();
+
+            // Create item
+            return new TreeItem<String>(property.getAsString());
+        }
+        else if (element.isJsonArray()) {
+            // Get json array
+            JsonArray children = element.getAsJsonArray();
+
+            // Iterate over object childs
+            for (JsonElement child : children)
+                // Add child to parent
+                parent.getChildren().add(createTree(child, null));
+
+            return null;
+        }
+        else {
+            // Get json object
+            JsonObject object = element.getAsJsonObject();
+            TreeItem<String> item = null;
+
+            // Map properties
+            for (Map.Entry<String, JsonElement> property : object.entrySet()) {
+                // Get property name and doc
+                String key = property.getKey();
+                JsonElement doc = property.getValue();
+
+                if (doc.isJsonPrimitive())
+                    item = createTree(doc, null);
+                else {
+                    // Get value from data object
+                    if (key.equals("data") && doc.isJsonObject()) {
+                        JsonObject data = doc.getAsJsonObject();
+                        item = createTree(data.get("value"), null);
+                    }
+                    // Create childs
+                    else createTree(doc, item);
+                }
+            }
+            item.setExpanded(true);
+            return item;
+        }
     }
     
     private void python(String command, String params) throws IOException{
@@ -357,7 +428,7 @@ public class PrimaryController implements Initializable {
     @FXML
     private void runSyntactic(){
         this.prepare("Compilando sintactico...", "-p");
-        this.syntaxOutput(); // Solo contiene errores
+        this.syntaxOutput();
     }
     
     private void prepare(String message, String extraParams){
