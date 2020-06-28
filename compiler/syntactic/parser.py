@@ -35,11 +35,10 @@ class Parser:
     def program(self):
         t = Tree("program")
         self.match(TokenType.MAIN, t)
-        self.match(TokenType.OPENC, t)
+        self.match(TokenType.OPENC)
         t.add_child(self.statementsList())
         t.add_child(self.sentencesList())
-
-        self.match(TokenType.CLOSEC, t)
+        self.match(TokenType.CLOSEC)
         return t
 
     # stmt-list→ { stmt; }
@@ -111,9 +110,9 @@ class Parser:
     def iteration(self):
         t = Tree("ITERATION")
         self.match(TokenType.WHILE, t)
-        self.match(TokenType.OPENP, t)
+        self.match(TokenType.OPENP)
         t.add_child(self.exp())
-        self.match(TokenType.CLOSEP, t)
+        self.match(TokenType.CLOSEP)
         t.add_child(self.block())
         return t
 
@@ -125,7 +124,7 @@ class Parser:
         if self.token.type == TokenType.ASSIGN:
             self.match(TokenType.ASSIGN, t)
             t.add_child(self.exp())
-        self.match(TokenType.SEMI, t)
+        self.match(TokenType.SEMI)
         #t.add_child(id)
         return t
 
@@ -136,7 +135,7 @@ class Parser:
         #id = Tree("ID")
         self.match(TokenType.ID, t)
         # FIXME:
-        self.match(TokenType.SEMI, t)
+        self.match(TokenType.SEMI)
         return t
     
     # sent-cout → cout exp ;
@@ -153,11 +152,11 @@ class Parser:
         t = Tree("SELECT")
         self.match(TokenType.IF, t)
 
-        self.match(TokenType.OPENP, t)
+        self.match(TokenType.OPENP)
 
         t.add_child(self.exp())
 
-        self.match(TokenType.CLOSEP, t)
+        self.match(TokenType.CLOSEP)
 
         self.match(TokenType.THEN, t)
         t.add_child(self.block())
@@ -170,9 +169,9 @@ class Parser:
     # block → “{“ sent-list “ }”
     def block(self):
         t = Tree("BLOCK")
-        self.match(TokenType.OPENC, t)
+        self.match(TokenType.OPENC)
         t.add_child(self.sentencesList())
-        self.match(TokenType.CLOSEC, t)
+        self.match(TokenType.CLOSEC)
         return t
 
     #exp → exp-simple [relación exp-simple]
