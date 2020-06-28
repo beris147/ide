@@ -28,8 +28,9 @@ class Parser:
     def parse(self):
         self.token = self.lex.getToken()
         tree = self.program()
-        #if self.traceParser:
-        #    tree.printPreOrder()
+        tree.build()
+        if self.traceParser:
+            tree.printPreOrder()
         if self.token.type != TokenType.EOF:
             self.syntaxError("Code ends before file", self.lex.lineo)
         return tree
