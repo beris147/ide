@@ -184,7 +184,6 @@ class Lex:
                         self.state = STATE.START
                     elif c == '\n':
                         self.state = STATE.COMM_BLOCK
-                        break
                     elif c != "*":
                         self.state = STATE.COMM_BLOCK
                     continue
@@ -192,7 +191,6 @@ class Lex:
                 elif self.state == STATE.COMM_LINE:
                     if c == "\n":
                         self.state = STATE.START
-                        break
                     continue
 
                 # < <=

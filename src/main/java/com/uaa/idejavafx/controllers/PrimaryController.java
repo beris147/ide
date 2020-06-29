@@ -59,13 +59,13 @@ public class PrimaryController implements Initializable {
     @FXML
     private TreeView<String> syntacticTree;
     @FXML
-    private Tab tabTitle, outputTab, errorTab;
+    private Tab tabTitle, outputTab, errorTab, lexicalTab, syntacticTab;
     @FXML
     private Label currentLabel, totalLabel, infoLabel;
     @FXML
     private Button lexicalButton;
     @FXML
-    private TabPane statusTabPane;
+    private TabPane statusTabPane, compilerTabPane;
     @FXML
     private AnchorPane pane;
     
@@ -306,7 +306,7 @@ public class PrimaryController implements Initializable {
             selectionModel.select(errorTab);
         } else {
             selectionModel.select(outputTab);
-            outputArea.appendText("build: ok");
+            outputArea.appendText("\nbuild: ok");
         }
         errorArea.appendText(errors);
         lexicalArea.replaceText(output);
@@ -330,7 +330,7 @@ public class PrimaryController implements Initializable {
             selectionModel.select(errorTab);
         } else {
             selectionModel.select(outputTab);
-            outputArea.appendText("build: ok");
+            outputArea.appendText("\nbuild: ok");
         }
 
         // Read json file
@@ -421,26 +421,30 @@ public class PrimaryController implements Initializable {
     
     @FXML
     private void runLexical(){
-        this.prepare("Compilando lexico...", "");
+        this.prepare("Compilando lexico...", "", this.lexicalTab);
         this.lexOutput();
     }
     
     @FXML
     private void runSyntactic(){
-        this.prepare("Compilando sintactico...", "-p");
+        //this.runLexical();
+        this.prepare("Compilando sintactico...", "-p", this.syntacticTab);
+        this.lexOutput();
         this.syntaxOutput();
     }
     
-    private void prepare(String message, String extraParams){
+    private void prepare(String message, String extraParams, Tab tab){
         this.clean();
-        SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
+        SingleSelectionModel<Tab> compilerModel = compilerTabPane.getSelectionModel();
+        compilerModel.select(tab);
+        SingleSelectionModel<Tab> statusModel = statusTabPane.getSelectionModel();
         this.fileHelper.saveContent(codeText);
         if(this.fileHelper.getFile()== null){
-            selectionModel.select(errorTab);
+            statusModel.select(errorTab);
             errorArea.replaceText("Archivo no seleccionado");
         } else {
             try {
-                selectionModel.select(outputTab);
+                statusModel.select(outputTab);
                 outputArea.appendText(message + "\n");
                 String dir = this.fileHelper.getFile().getParent(), name = this.fileHelper.getFile().getName();
                 if (Main.compilerDir == null) Main.setCompilerDir();
