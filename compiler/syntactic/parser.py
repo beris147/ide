@@ -37,7 +37,7 @@ selectFollow = stmtListFollow
 iterationFollow = stmtListFollow
 cinFollow = stmtListFollow
 coutFollow = stmtListFollow
-blockFollow = stmtListFollow
+blockFollow = stmtListFollow + [TokenType.ELSE, TokenType.END]
 assignFollow = stmtListFollow
 
 #common operators follow  { (, num, id }
@@ -49,28 +49,30 @@ expFollow = [TokenType.CLOSEP, TokenType.SEMI]
 #relation follow  { (, num, id }
 relationFollow = operators
 
-#exp-simple follow  {  ),  ; }
-simpleExpFollow = expFollow
+relationOperators = [TokenType.LOREQ, TokenType.LT, TokenType.BT, TokenType.BOREQ, TokenType.EQ, TokenType.DIFF]
+
+#exp-simple follow  {  ),  ;, <= , < , > , >= , = , != }
+simpleExpFollow = expFollow + relationOperators
 
 #suma-op follow  { (, num, id }
 addOpFollow = operators
 
-#term follow { +, -, ++, - - , ),  ; }
+#term follow { +, -, ++, - - , ),  ;, <= , < , > , >= , = , != }
 termFollow = [
     TokenType.PLUS, TokenType.MINUS, 
     TokenType.INC, TokenType.DEC, 
     TokenType.CLOSEP, TokenType.SEMI
-]
+] + relationOperators
 
 #mult-op follow  { (, num, id }
 multOpFollow = operators
 
-#factor follow { *, /, % , +, -, ++, - - , ),  ; }
+#factor follow { *, /, % , +, -, ++, - - , ),  ;, <= , < , > , >= , = , != }
 factorFollow = [
     TokenType.MULT, TokenType.DIV, TokenType.MOD, 
     TokenType.PLUS, TokenType.MINUS, TokenType.INC, 
     TokenType.DEC, TokenType.CLOSEP, TokenType.SEMI
-]
+] + relationOperators
 
 def inc_dec(last, t, inc):
     assign = Token(TokenType.ASSIGN, ":=", last.lineo)
