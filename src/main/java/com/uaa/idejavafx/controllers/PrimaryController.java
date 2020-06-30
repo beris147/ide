@@ -346,7 +346,7 @@ public class PrimaryController implements Initializable {
         this.initLineNumberFactory(lineErrors);
     }
 
-    private static TreeItem<String> createTree(JsonElement element, TreeItem<String> parent) {
+    private TreeItem<String> createTree(JsonElement element, TreeItem<String> parent) {
         if (element.isJsonNull())
             // Empty
             return new TreeItem<String>("Null");

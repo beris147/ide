@@ -15,7 +15,7 @@ class Token:
         return str(self.printToken())
 
     def __repr__(self):
-        return str(dict(type = str(self.type.name), value = self.value))
+        return str(dict(value = str(self.type.name) + " -> " + self.value))
 
     def printToken(self):
         funct = {
