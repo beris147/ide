@@ -14,7 +14,7 @@ programFollow = [TokenType.EOF]
 stmtListFollow = [
     TokenType.IF, TokenType.WHILE, TokenType.CIN,
     TokenType.COUT, TokenType.OPENC, TokenType.ID,
-    TokenType.CLOSEC
+    TokenType.CLOSEC, TokenType.DO
 ]
 
 #stmt follow { ; }
@@ -39,9 +39,10 @@ cinFollow = stmtListFollow
 coutFollow = stmtListFollow
 blockFollow = stmtListFollow + [TokenType.ELSE, TokenType.END]
 assignFollow = stmtListFollow
+repeatFollow = stmtListFollow
 
 #common operators follow  { (, num, id }
-operators = [TokenType.OPENP, TokenType.NUM, TokenType.ID]
+operators = [TokenType.OPENP, TokenType.NUM, TokenType.FLOAT, TokenType.ID]
 
 #exp follow {  ),  ; }
 expFollow = [TokenType.CLOSEP, TokenType.SEMI]
@@ -96,6 +97,7 @@ class Parser:
         Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
         self.output = open(directory+"/compilador/syntactic.o","w+")
         self.error = Error()
+        self.lastError = 0
 
     def parse(self):
         self.token = self.lex.getToken()
@@ -112,10 +114,12 @@ class Parser:
             self.token = self.lex.getToken()
 
     def syntaxError(self, msg, lineo):
-        out = f'>>>Syntaxt error at line {lineo} {msg}'
-        self.output.write(out + "\n")
-        if self.traceParser:
-            print(out)
+        if self.lastError != lineo:
+            self.lastError = lineo
+            out = f'>>>Syntaxt error at line {lineo} {msg}'
+            self.output.write(out + "\n")
+            if self.traceParser:
+                print(out)
         
 
     def match(self, expected, parent=None, child=None):
@@ -131,7 +135,7 @@ class Parser:
             self.syntaxError(f' expected {expected} received {self.token}', self.lex.lineo)
             self.getToken()
 
-    # programa → main '{' lista-declaración lista-sentencias '}'
+    # programa → main '{' lista-declaración lista-sentencias '}' $ 
     def program(self, follow):
         t = Tree("program")
         #first main
@@ -152,7 +156,7 @@ class Parser:
     def statementsList(self, follow):
         t = Tree("STMT-LIST")
         #first { int, float, bool , e}
-        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
         #self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
@@ -164,7 +168,7 @@ class Parser:
     # stmt → type var-list
     def statement(self, follow):
         t = Tree("STATEMENT")
-        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             t.add_child(self.varType(typeFollow))
@@ -175,13 +179,13 @@ class Parser:
     # type → int | float | bool
     def varType(self, follow):
         t = Tree("TYPE")
-        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type == TokenType.INT:
                 self.match(TokenType.INT, t)
-            elif self.token.type == TokenType.REAL:
-                self.match(TokenType.REAL, t)
+            elif self.token.type == TokenType.FLOAT:
+                self.match(TokenType.FLOAT, t)
             elif self.token.type == TokenType.BOOLEAN:
                 self.match(TokenType.BOOLEAN, t)
             else:
@@ -206,7 +210,7 @@ class Parser:
     def sentencesList(self, follow):
         t = Tree("SENT-LIST")
         #first {if, while, cin, cout, “{”, id, e}
-        first = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID]
+        first = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID, TokenType.DO]
         #self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
@@ -218,7 +222,12 @@ class Parser:
     def sentence(self, follow):
         t = Tree("SENTENCE")
         #first {if, while, cin, cout, “{”, id}
-        first = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID]
+        first = [
+            TokenType.IF, TokenType.WHILE, 
+            TokenType.CIN, TokenType.COUT, 
+            TokenType.OPENC, TokenType.ID, 
+            TokenType.DO
+        ]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type == TokenType.IF:
@@ -233,9 +242,27 @@ class Parser:
                 t.add_child(self.iteration(iterationFollow))
             elif self.token.type == TokenType.ID:
                 t.add_child(self.assign(assignFollow))
+            elif self.token.type == TokenType.DO:
+                t.add_child(self.repeat(repeatFollow))
             self.checkInput(follow, first)
         return t
     
+    # repeat → do block while ( exp );
+    def repeat(self, follow):
+        t = Tree("REPEAT")
+        first = [TokenType.DO]
+        self.checkInput(first, follow)
+        if self.token.type in first:
+            self.match(TokenType.DO, t)
+            t.add_child(self.block(blockFollow))
+            self.match(TokenType.WHILE, t)
+            self.match(TokenType.OPENP)
+            t.add_child(self.exp(expFollow))
+            self.match(TokenType.CLOSEP)
+            self.match(TokenType.SEMI)
+            self.checkInput(follow, first)
+        return t
+
     # iteration → while ( exp )  block
     def iteration(self, follow):
         t = Tree("ITERATION")
@@ -334,7 +361,7 @@ class Parser:
     def exp(self, follow):
         t = Tree("EXP")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM, TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             t.add_child(self.simple_exp(simpleExpFollow))
@@ -363,7 +390,7 @@ class Parser:
     def simple_exp(self, follow):
         t = Tree("SIMPLE EXP")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             t.add_child(self.term(termFollow))
@@ -398,7 +425,7 @@ class Parser:
     def term(self, follow):
         t = Tree("TERM")
         #first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             t.add_child(self.factor(factorFollow))
@@ -426,15 +453,15 @@ class Parser:
     def factor(self, follow):
         t = Tree("FACTOR")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type == TokenType.OPENP:
                 self.match(TokenType.OPENP)
                 t.add_child(self.exp(expFollow))
                 self.match(TokenType.CLOSEP)
-            elif self.token.type == TokenType.NUM:
-                self.match(TokenType.NUM, t)
+            elif self.token.type == TokenType.NUM or self.token.type == TokenType.FLOAT:
+                self.match(self.token.type, t)
             elif self.token.type == TokenType.ID:
                 self.match(TokenType.ID, t)
             else:
