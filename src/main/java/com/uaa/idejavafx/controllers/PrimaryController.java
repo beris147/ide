@@ -421,20 +421,21 @@ public class PrimaryController implements Initializable {
     
     @FXML
     private void runLexical(){
+        this.clean();
         this.prepare("Compilando lexico...", "", this.lexicalTab);
         this.lexOutput();
     }
     
     @FXML
     private void runSyntactic(){
-        //this.runLexical();
+        //this.clean();
+        this.runLexical();
         this.prepare("Compilando sintactico...", "-p", this.syntacticTab);
         this.lexOutput();
         this.syntaxOutput();
     }
     
     private void prepare(String message, String extraParams, Tab tab){
-        this.clean();
         SingleSelectionModel<Tab> compilerModel = compilerTabPane.getSelectionModel();
         compilerModel.select(tab);
         SingleSelectionModel<Tab> statusModel = statusTabPane.getSelectionModel();
