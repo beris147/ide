@@ -14,7 +14,8 @@ programFollow = [TokenType.EOF]
 stmtListFollow = [
     TokenType.IF, TokenType.WHILE, TokenType.CIN,
     TokenType.COUT, TokenType.OPENC, TokenType.ID,
-    TokenType.CLOSEC, TokenType.DO
+    TokenType.CLOSEC, TokenType.DO, TokenType.INT,
+    TokenType.REAL, TokenType.BOOLEAN
 ]
 
 #stmt follow { ; }
@@ -42,7 +43,7 @@ assignFollow = stmtListFollow
 repeatFollow = stmtListFollow
 
 #common operators follow  { (, num, id }
-operators = [TokenType.OPENP, TokenType.NUM, TokenType.FLOAT, TokenType.ID]
+operators = [TokenType.OPENP, TokenType.NUM, TokenType.REAL, TokenType.ID]
 
 #exp follow {  ),  ; }
 expFollow = [TokenType.CLOSEP, TokenType.SEMI]
@@ -79,10 +80,11 @@ def inc_dec(last, t, inc):
     assign = Token(TokenType.ASSIGN, ":=", last.lineo)
     inc_dec = Token(TokenType.PLUS, "+", last.lineo) if inc == True else Token(TokenType.MINUS, "-", last.lineo)
     one = Token(TokenType.NUM, "1", last.lineo)
+    parent = Tree(inc_dec)
     t.add_child(Tree(assign))
-    t.add_child(Tree(last))
-    t.add_child(Tree(inc_dec))
-    t.add_child(Tree(one))
+    parent.add_child(Tree(last))
+    parent.add_child(Tree(one))
+    t.add_child(parent)
 
 class Error:
     def __init__(self, message = "", lineo = 0):
@@ -156,7 +158,7 @@ class Parser:
     def statementsList(self, follow):
         t = Tree("STMT-LIST")
         #first { int, float, bool , e}
-        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         #self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
@@ -168,7 +170,7 @@ class Parser:
     # stmt → type var-list
     def statement(self, follow):
         t = Tree("STATEMENT")
-        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             t.add_child(self.varType(typeFollow))
@@ -179,13 +181,13 @@ class Parser:
     # type → int | float | bool
     def varType(self, follow):
         t = Tree("TYPE")
-        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type == TokenType.INT:
                 self.match(TokenType.INT, t)
-            elif self.token.type == TokenType.FLOAT:
-                self.match(TokenType.FLOAT, t)
+            elif self.token.type == TokenType.REAL:
+                self.match(TokenType.REAL, t)
             elif self.token.type == TokenType.BOOLEAN:
                 self.match(TokenType.BOOLEAN, t)
             else:
@@ -328,7 +330,6 @@ class Parser:
     #  select → if ( exp ) then block [else block] end
     def select(self, follow):
         t = Tree("SELECT")
-        #first  { if }
         first = [TokenType.IF]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -361,14 +362,20 @@ class Parser:
     def exp(self, follow):
         t = Tree("EXP")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM, TokenType.FLOAT, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM, TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t.add_child(self.simple_exp(simpleExpFollow))
+            parent = self.simple_exp(simpleExpFollow)
+            #t.add_child(self.simple_exp(simpleExpFollow))
             options = [TokenType.LOREQ, TokenType.LT, TokenType.BT, TokenType.BOREQ, TokenType.EQ, TokenType.DIFF]
             if self.token.type in options:
-                t.add_child(self.relation(relationFollow))
-                t.add_child(self.simple_exp(simpleExpFollow))
+                aux = parent
+                parent = self.relation(relationFollow)
+                parent.add_child(aux)
+                parent.add_child(self.simple_exp(simpleExpFollow))
+                """t.add_child(self.relation(relationFollow))
+                t.add_child(self.simple_exp(simpleExpFollow))"""
+            t.add_child(parent)
             self.checkInput(follow, first)
         return t
 
@@ -390,15 +397,24 @@ class Parser:
     def simple_exp(self, follow):
         t = Tree("SIMPLE EXP")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t.add_child(self.term(termFollow))
+            parent = self.term(termFollow)
+            #t.add_child(self.term(termFollow))
             while(self.token.type in [TokenType.PLUS, TokenType.MINUS, TokenType.INC, TokenType.DEC]):
                 type = self.token.type
-                t.add_child(self.add_op(addOpFollow))
+                """t.add_child(self.add_op(addOpFollow))
                 if type is not TokenType.INC and type is not TokenType.DEC:
-                    t.add_child(self.term(termFollow))
+                    t.add_child(self.term(termFollow))"""
+                if type is not TokenType.INC and type is not TokenType.DEC:
+                    aux = parent
+                    parent = self.add_op(addOpFollow)
+                    parent.add_child(aux)
+                    parent.add_child(self.term(termFollow))
+                else:
+                    inc_dec(self.last, t, self.last.type == TokenType.INC)
+            t.add_child(parent)
             self.checkInput(follow, first)
         return t
 
@@ -425,13 +441,16 @@ class Parser:
     def term(self, follow):
         t = Tree("TERM")
         #first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t.add_child(self.factor(factorFollow))
+            parent = self.factor(factorFollow)
             while(self.token.type in [TokenType.MULT,TokenType.DIV,TokenType.MOD]):
-                t.add_child(self.mult_op(multOpFollow))
-                t.add_child(self.factor(factorFollow))
+                aux = parent
+                parent = self.mult_op(multOpFollow)
+                parent.add_child(aux)
+                parent.add_child(self.factor(factorFollow))
+            t.add_child(parent)
             self.checkInput(follow, first)
         return t
 
@@ -453,14 +472,14 @@ class Parser:
     def factor(self, follow):
         t = Tree("FACTOR")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type == TokenType.OPENP:
                 self.match(TokenType.OPENP)
                 t.add_child(self.exp(expFollow))
                 self.match(TokenType.CLOSEP)
-            elif self.token.type == TokenType.NUM or self.token.type == TokenType.FLOAT:
+            elif self.token.type == TokenType.NUM or self.token.type == TokenType.REAL:
                 self.match(self.token.type, t)
             elif self.token.type == TokenType.ID:
                 self.match(TokenType.ID, t)
@@ -468,7 +487,7 @@ class Parser:
                 self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.checkInput(follow, first)
         return t
-
+    
     def checkInput(self, first, follow):
         if self.token.type not in first:
             newError = Error(f'unexpected token {self.token}', self.lex.lineo)

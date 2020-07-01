@@ -126,7 +126,7 @@ class Lex:
                     if not c.isdigit():
                         save = False
                         ungetChar = True if c else False
-                        currentToken.type = TokenType.FLOAT if currentToken.value[0].isdigit() else TokenType.SFLOAT
+                        currentToken.type = TokenType.REAL #if currentToken.value[0].isdigit() else TokenType.SFLOAT
                         self.state = STATE.DONE
 
                 # +

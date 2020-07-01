@@ -430,8 +430,8 @@ public class PrimaryController implements Initializable {
     private void runSyntactic(){
         //this.clean();
         this.runLexical();
-        this.prepare("Compilando sintactico...", "-p", this.syntacticTab);
-        this.lexOutput();
+        this.prepare("\nCompilando sintactico...", "-p", this.syntacticTab);
+        //this.lexOutput();
         this.syntaxOutput();
     }
     

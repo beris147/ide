@@ -21,9 +21,6 @@ class Token:
         funct = {
             TokenType.ID: lambda: "ID: "+self.value,
             TokenType.NUM: lambda: TokenType(self.type).name + ": "+self.value,
-            TokenType.SNUM: lambda: TokenType(self.type).name + ": "+self.value,
-            TokenType.FLOAT: lambda: TokenType(self.type).name + ": "+self.value,
-            TokenType.SFLOAT: lambda: TokenType(self.type).name + ": "+self.value,
             TokenType.LT: lambda: TokenType(self.type).name + ": " + self.value,
             TokenType.LOREQ: lambda: TokenType(self.type).name + ": " + self.value,
             TokenType.EQ: lambda: TokenType(self.type).name + ": " + self.value,
