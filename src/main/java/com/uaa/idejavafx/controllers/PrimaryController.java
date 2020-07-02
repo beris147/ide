@@ -74,7 +74,7 @@ public class PrimaryController implements Initializable {
     private ExecutorService executor;
     
     private static final String[] KEYWORDS = new String[] {
-            "main", "if", "then", "else", "end", "do", "while", "cin", "cout", "real", "int", "boolean"
+            "main", "if", "then", "else", "end", "do", "while", "until", "cin", "cout", "real", "int", "boolean"
     };
 
     private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
@@ -354,9 +354,11 @@ public class PrimaryController implements Initializable {
         else if (element.isJsonPrimitive()) {
             // Get property
             JsonPrimitive property = element.getAsJsonPrimitive();
+            String value = property.getAsString();
+            String parts [] = value.split("->");
 
             // Create item
-            return new TreeItem<String>(property.getAsString());
+            return new TreeItem<String>((parts.length > 1) ? parts[1] : value);
         }
         else if (element.isJsonArray()) {
             // Get json array
