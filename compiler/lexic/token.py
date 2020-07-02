@@ -48,6 +48,7 @@ class Token:
             TokenType.END: lambda: "RESERVED WORD: " + self.value,
             TokenType.DO: lambda: "RESERVED: " + self.value,
             TokenType.WHILE: lambda: "RESERVED: " + self.value,
+            TokenType.UNTIL: lambda: "RESERVED: " + self.value,
             TokenType.CIN: lambda: "RESERVED: " + self.value,
             TokenType.COUT: lambda: "RESERVED: " + self.value,
             TokenType.REAL: lambda: "RESERVED: " + self.value,

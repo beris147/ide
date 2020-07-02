@@ -12,7 +12,7 @@ programFollow = [TokenType.EOF]
 
 #stmt-list follow { if, while, cin, cout, “{”, id, “}” }
 stmtListFollow = [
-    TokenType.IF, TokenType.WHILE, TokenType.CIN,
+    TokenType.IF, TokenType.WHILE, TokenType.UNTIL, TokenType.CIN,
     TokenType.COUT, TokenType.OPENC, TokenType.ID,
     TokenType.CLOSEC, TokenType.DO, TokenType.INT,
     TokenType.REAL, TokenType.BOOLEAN, TokenType.END, TokenType.ELSE
@@ -262,7 +262,7 @@ class Parser:
         if self.token.type in first:
             self.match(TokenType.DO, t)
             t.add_child(self.block(blockFollow))
-            self.match(TokenType.WHILE, t)
+            self.match(TokenType.UNTIL, t)
             self.match(TokenType.OPENP)
             t.add_child(self.exp(expFollow))
             self.match(TokenType.CLOSEP)
