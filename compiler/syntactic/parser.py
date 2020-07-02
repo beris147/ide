@@ -254,14 +254,17 @@ class Parser:
             self.checkInput(follow, first)
         return t
     
-    # repeat → do block while ( exp );
+    # repeat → do block until ( exp );
     def repeat(self, follow):
         t = Tree("REPEAT")
         first = [TokenType.DO]
         self.checkInput(first, follow)
         if self.token.type in first:
             self.match(TokenType.DO, t)
-            t.add_child(self.block(blockFollow))
+            if self.token.type == TokenType.OPENC:
+                t.add_child(self.block(blockFollow))
+            else:
+                t.add_child(self.sentencesList(sentListFollow))
             self.match(TokenType.UNTIL, t)
             self.match(TokenType.OPENP)
             t.add_child(self.exp(expFollow))
