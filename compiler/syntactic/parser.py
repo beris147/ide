@@ -124,7 +124,7 @@ class Parser:
                 print(out)
         
 
-    def match(self, expected, parent=None, child=None):
+    def match(self, expected, parent=None, child=None, follow = None):
         self.last = self.token
         if self.token.type == expected:
             self.getToken()
@@ -135,7 +135,8 @@ class Parser:
                     parent.add_child(child)
         else:
             self.syntaxError(f' expected {expected} received {self.token}', self.lex.lineo)
-            self.getToken()
+            if follow is None or self.token.type not in follow:
+                self.getToken()
 
     # programa → main '{' lista-declaración lista-sentencias '}' $ 
     def program(self, follow):
@@ -163,7 +164,7 @@ class Parser:
         if self.token.type in first:
             while self.token.type in first:
                 t.add_child(self.statement(stmtFollow))
-                self.match(TokenType.SEMI)
+                self.match(TokenType.SEMI, None, None, follow)
             #self.checkInput(follow, first)
         return t
 
@@ -175,7 +176,7 @@ class Parser:
         if self.token.type in first:
             t.add_child(self.varType(typeFollow))
             t.add_child(self.varsList(varListFollow))
-            self.checkInput(follow, first)
+            #self.checkInput(follow, first)
         return t
 
     # type → int | float | bool
@@ -205,7 +206,7 @@ class Parser:
             while self.token.type == TokenType.COMMA:
                 self.match(TokenType.COMMA)
                 self.match(TokenType.ID, t)
-            self.checkInput(follow, first)
+            #self.checkInput(follow, first)
         return t
 
     # sent-list → { sent }
