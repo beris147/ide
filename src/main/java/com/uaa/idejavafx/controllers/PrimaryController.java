@@ -309,7 +309,7 @@ public class PrimaryController implements Initializable {
             outputArea.appendText("\nbuild: ok");
         }
         errorArea.appendText(errors);
-        lexicalArea.replaceText(output);
+        lexicalArea.replaceText(output);        
         this.initLineNumberFactory(lineErrors);
     }
     

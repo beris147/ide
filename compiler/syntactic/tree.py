@@ -11,7 +11,7 @@ def printSpaces(Stack):
         print("\t", end='')
 
 class Tree(dict):
-    def __init__(self, data):
+    def __init__(self, data = ''):
         super().__init__()
         self.__dict__ = self
         self.data = data
