@@ -319,7 +319,8 @@ class Parser:
         first = [TokenType.CIN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            self.match(TokenType.CIN, t)
+            t = Tree(self.token)
+            self.match(TokenType.CIN)
             self.match(TokenType.ID, t)
             # FIXME:
             self.match(TokenType.SEMI)
@@ -332,7 +333,8 @@ class Parser:
         first = [TokenType.COUT]
         self.checkInput(first, follow)
         if self.token.type in first:
-            self.match(TokenType.COUT, t)
+            t = Tree(self.token)
+            self.match(TokenType.COUT)
             # FIXME:
             exp = self.exp(expFollow)
             self.match(TokenType.SEMI, t, exp)
@@ -345,7 +347,8 @@ class Parser:
         first = [TokenType.IF]
         self.checkInput(first, follow)
         if self.token.type in first:
-            self.match(TokenType.IF, t)
+            t = Tree(self.token)
+            self.match(TokenType.IF)
             self.match(TokenType.OPENP)
             t.add_child(self.exp(expFollow))
             self.match(TokenType.CLOSEP)
