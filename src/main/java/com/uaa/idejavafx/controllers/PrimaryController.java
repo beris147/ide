@@ -1,20 +1,31 @@
 package com.uaa.idejavafx.controllers;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.uaa.classes.FileHelper;
 import com.uaa.classes.LineError;
 import com.uaa.idejavafx.Main;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.IntFunction;
@@ -27,11 +38,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -45,13 +57,15 @@ public class PrimaryController implements Initializable {
     @FXML
     private CodeArea codeText, outputArea, errorArea, lexicalArea;
     @FXML
-    private Tab tabTitle, outputTab, errorTab;
+    private TreeView<String> syntacticTree;
+    @FXML
+    private Tab tabTitle, outputTab, errorTab, lexicalTab, syntacticTab;
     @FXML
     private Label currentLabel, totalLabel, infoLabel;
     @FXML
     private Button lexicalButton;
     @FXML
-    private TabPane statusTabPane;
+    private TabPane statusTabPane, compilerTabPane;
     @FXML
     private AnchorPane pane;
     
@@ -60,7 +74,7 @@ public class PrimaryController implements Initializable {
     private ExecutorService executor;
     
     private static final String[] KEYWORDS = new String[] {
-            "main", "if", "then", "else", "end", "do", "while", "cin", "cout", "real", "int", "boolean"
+            "main", "if", "then", "else", "end", "do", "while", "until", "cin", "cout", "real", "int", "boolean"
     };
 
     private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
@@ -267,64 +281,180 @@ public class PrimaryController implements Initializable {
         Main.setCompilerDir();
     }
     
+    private void lexOutput(){
+        SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
+        selectionModel.select(outputTab);
+        String s, output = "", errors = "", lastLine = "";
+        List<Integer> lineErrors = new ArrayList<>();
+        Path lexo = Paths.get(this.fileHelper.getFile().getParent() + "/compilador/lexical.o").toAbsolutePath();
+        try (Scanner scanner = new Scanner(lexo).useDelimiter("\n")) {
+            while (scanner.hasNext()) {
+                s = scanner.next();
+                if (s.contains("ERROR")) {
+                    Integer l = Integer.parseInt(lastLine.split(" ")[0]);
+                    Integer c = Integer.parseInt(lastLine.split(" ")[1]);
+                    errors += s.replace("<ERROR: ", "Error con \"").replace(">", "\"") + " línea: " + l + " columna: " + c + "\n";
+                    lineErrors.add(l - 1);
+                } else if (s.contains("<")) {
+                    output += lastLine + "\n" + s + "\n";
+                }
+                lastLine = s;
+            }
+        } catch (IOException ex) { }
+
+        if (!errors.isEmpty()) {
+            selectionModel.select(errorTab);
+        } else {
+            selectionModel.select(outputTab);
+            outputArea.appendText("\nbuild: ok");
+        }
+        errorArea.appendText(errors);
+        lexicalArea.replaceText(output);        
+        this.initLineNumberFactory(lineErrors);
+    }
+    
+    private void syntaxOutput(){
+        //aqui tambien hay que abrir el json y cargar el arbol al tree view
+        SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
+        selectionModel.select(outputTab);
+        String s, errors = "";
+        List<Integer> lineErrors = new ArrayList<>();
+        Path syntaxo = Paths.get(this.fileHelper.getFile().getParent() + "/compilador/syntactic.o").toAbsolutePath();
+        try (Scanner scanner = new Scanner(syntaxo).useDelimiter("\n")) {
+            while (scanner.hasNext()) {
+                s = scanner.next();
+                errors += s + "\n";
+            }
+        } catch (IOException ex) { }
+        if (!errors.isEmpty()) {
+            selectionModel.select(errorTab);
+        } else {
+            selectionModel.select(outputTab);
+            outputArea.appendText("\nbuild: ok");
+        }
+
+        // Read json file
+        JsonParser parser = new JsonParser();
+        try {
+            JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/tree.json"));
+            // Set tree root
+            this.syntacticTree.setRoot(createTree(json, null));
+
+        } catch(FileNotFoundException ex) {}
+
+        errorArea.appendText(errors);
+        this.initLineNumberFactory(lineErrors);
+    }
+
+    private TreeItem<String> createTree(JsonElement element, TreeItem<String> parent) {
+        if (element.isJsonNull())
+            // Empty
+            return new TreeItem<String>("Null");
+        
+        else if (element.isJsonPrimitive()) {
+            // Get property
+            JsonPrimitive property = element.getAsJsonPrimitive();
+            String value = property.getAsString();
+            String parts [] = value.split("->");
+
+            // Create item
+            return new TreeItem<String>((parts.length > 1) ? parts[1] : value);
+        }
+        else if (element.isJsonArray()) {
+            // Get json array
+            JsonArray children = element.getAsJsonArray();
+
+            // Iterate over object childs
+            for (JsonElement child : children)
+                // Add child to parent
+                parent.getChildren().add(createTree(child, null));
+
+            return null;
+        }
+        else {
+            // Get json object
+            JsonObject object = element.getAsJsonObject();
+            TreeItem<String> item = null;
+
+            // Map properties
+            for (Map.Entry<String, JsonElement> property : object.entrySet()) {
+                // Get property name and doc
+                String key = property.getKey();
+                JsonElement doc = property.getValue();
+
+                if (doc.isJsonPrimitive())
+                    item = createTree(doc, null);
+                else {
+                    // Get value from data object
+                    if (key.equals("data") && doc.isJsonObject()) {
+                        JsonObject data = doc.getAsJsonObject();
+                        item = createTree(data.get("value"), null);
+                    }
+                    // Create childs
+                    else createTree(doc, item);
+                }
+            }
+            item.setExpanded(true);
+            return item;
+        }
+    }
+    
+    private void python(String command, String params) throws IOException{
+        SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
+        String errors = "", output = "";
+        Process p = Runtime.getRuntime().exec(command + params);
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+        String s;
+        while ((s = stdInput.readLine()) != null) { output = s + "\n"; }
+        while ((s = stdError.readLine()) != null) { errors += s + "\n"; }
+        if (!errors.isEmpty()) {
+            selectionModel.select(errorTab);
+        }
+        errorArea.appendText(errors);
+        outputArea.appendText(output);
+        p.destroyForcibly(); stdInput.close(); stdError.close();
+    }
+    
+    private void clean(){
+        errorArea.replaceText(""); 
+        outputArea.replaceText("");
+    }
+    
     @FXML
     private void runLexical(){
-        SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
-        Process p = null;
-        BufferedReader stdInput = null, stdError = null;
+        this.clean();
+        this.prepare("Compilando lexico...", "", this.lexicalTab);
+        this.lexOutput();
+    }
+    
+    @FXML
+    private void runSyntactic(){
+        //this.clean();
+        this.runLexical();
+        this.prepare("\nCompilando sintactico...", "-p", this.syntacticTab);
+        //this.lexOutput();
+        this.syntaxOutput();
+    }
+    
+    private void prepare(String message, String extraParams, Tab tab){
+        SingleSelectionModel<Tab> compilerModel = compilerTabPane.getSelectionModel();
+        compilerModel.select(tab);
+        SingleSelectionModel<Tab> statusModel = statusTabPane.getSelectionModel();
         this.fileHelper.saveContent(codeText);
         if(this.fileHelper.getFile()== null){
-            selectionModel.select(errorTab);
+            statusModel.select(errorTab);
             errorArea.replaceText("Archivo no seleccionado");
         } else {
             try {
-                selectionModel.select(outputTab);
-                outputArea.replaceText("Compilando léxico...\n");
+                statusModel.select(outputTab);
+                outputArea.appendText(message + "\n");
                 String dir = this.fileHelper.getFile().getParent(), name = this.fileHelper.getFile().getName();
-                if (Main.compilerDir == null) {
-                    Main.setCompilerDir();
-                }
-                String command = Main.python+Main.compilerDir+"/lexic/__init__.py", params = " -d"+dir+" -f"+name+" -t yes";
-                p = Runtime.getRuntime().exec(command + params);
-                stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-                String s, output = "", errors = "";
-                String lastLine = "";
-                List<Integer> lineErros = new ArrayList<>();
-                List<String> out = new ArrayList<>();
-                while ((s = stdInput.readLine()) != null) {
-                    if(s.contains("ERROR")){
-                        Integer l = Integer.parseInt(lastLine.split(" ")[0]);
-                        Integer c = Integer.parseInt(lastLine.split(" ")[1]);
-                        errors += s.replace("<ERROR: ", "Error con \"").replace(">", "\"") + " línea: " + l + " columna: " + c+"\n";
-                        lineErros.add(l - 1);
-                    } else if(s.contains("<")){
-                        output += lastLine + "\n" + s + "\n";
-                    }
-                    lastLine = s;
-                }
-                while ((s = stdError.readLine()) != null) {
-                    errors += s + "\n";
-                }
-                if(!errors.isEmpty()){
-                    selectionModel.select(errorTab);
-                } else {
-                    selectionModel.select(outputTab);
-                    outputArea.replaceText("build: ok");
-                }
-                errorArea.replaceText(errors);
-                lexicalArea.replaceText(output);
-                this.initLineNumberFactory(lineErros);
+                if (Main.compilerDir == null) Main.setCompilerDir();
+                String command = Main.python+Main.compilerDir+"/main.py", params = " -d"+dir+" -f"+name+ " " + extraParams;
+                this.python(command, params);
             } catch (IOException ex) {
                 errorArea.appendText("\n"+ex.getMessage());
-            } finally{
-                try {
-                    if(p != null) p.destroyForcibly();
-                    if(stdInput!=null) stdInput.close();
-                    if(stdError != null) stdError.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
             }
         }
     }

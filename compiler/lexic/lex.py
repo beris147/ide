@@ -1,32 +1,34 @@
+import sys, os
+sys.path.append(os.path.relpath("../enumTypes.py"))
+
 from pathlib import Path 
 #Local imports
 from .token import Token
-from .enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
+from enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
 
-class Lexer:
-    posinline = 0
-    directory = ""
-    output = ""
-    file = ""
-    lineo = 1
-    traceScan = False
-    state = STATE(0)
-
-    def __init__(self, directory, file, traceScan = False, output = None):
+class Lex:
+    def __init__(self, directory, file, traceScan = False):
         self.directory = directory
         self.file = directory + "/" + file
         self.traceScan = traceScan
-        if traceScan:
-            Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
-            self.output = open(output,"w+") if output else open(directory+"/compilador/listing.txt","w+")
+        self.posinline = 0
+        self.lineo = 1
+        self.state = STATE(0)
+        self.readed = False
+        self.lines = list()
+        Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
+        self.output = open(directory+"/compilador/lexical.o","w+")
 
     def readfile(self):
         return (ln + '\n' for ln in open(self.file, 'r'))
     
     def printCurrent(self, token, loc = True):
         location = str(self.lineo) + " " + str(self.posinline - len(token.value) + 1) if loc else ""
-        print(location + "\n" + token.printToken(), end = '')
-        self.output.write(location + "\n" + token.printToken())
+        self.output.write(location + "\n" + token.printToken() + "\n")
+        if self.traceScan:
+            print(location + "\n" + token.printToken())
+        if(token.type == TokenType.EOF):
+            self.output.close()
     
     def checkStart(self, c):
         if c.isdigit():
@@ -44,35 +46,34 @@ class Lexer:
     def uniqueLookUp(self, c):
         unique = uniqueCharacter.get(c)
         return unique if unique else TokenType.ERROR
-
-    def run(self):
-        tokens = []
-        lines = self.readfile()
-        self.state = STATE(0)
-        for line in lines:
-            self.posinline = 0
-            currentToken = Token()
-            while(self.posinline < len(line)):
-                token = self.getToken(line, currentToken)
-                if self.state != STATE.DONE:
-                    continue
-                currentToken = Token()
-                self.state = STATE(0)
-                tokens.append(token)
+    
+    def getNextChar(self):
+        #File not readed yet
+        if self.readed == False:
+            self.lines = list(self.readfile())
+            self.readed = True
+        #end of line
+        if self.posinline >= len(self.lines[self.lineo-1]):
             self.lineo += 1
-        eofToken = Token(TokenType.EOF)
-        tokens.append(eofToken)
-        self.printCurrent(eofToken, False)
-        return tokens
-        if self.traceScan:
-            self.output.close()
+            self.posinline = 0
+        #end of file
+        if self.lineo-1 >= len(self.lines):
+            return None
+        #next char
+        c = self.lines[self.lineo-1][self.posinline]
+        self.posinline += 1
+        return c
 
-    def getToken(self, line, currentToken):
+    def getToken(self):
+        currentToken = Token()
+        self.state = STATE(0)
         while self.state != STATE.DONE:
             save = True
             ungetChar = False
-            c = line[self.posinline]
-            self.posinline += 1
+            c = self.getNextChar()
+            currentToken.lineo = self.lineo
+            #c = line[self.posinline]
+            #self.posinline += 1
             if(len(currentToken.value)+1 > 31):
                 currentToken.type = TokenType.ERROR
                 self.state = STATE.DONE
@@ -86,8 +87,8 @@ class Lexer:
                 self.state = self.checkStart(c)
                 if self.state == STATE.SPACES:
                     self.state = STATE.START
-                    if(c == '\n'):
-                        self.state = STATE.DONE
+                    #if(c == '\n'):
+                    #    self.state = STATE.DONE
                     continue
                 # Unique character
                 elif self.state == STATE.UNIQUE:
@@ -125,7 +126,7 @@ class Lexer:
                     if not c.isdigit():
                         save = False
                         ungetChar = True if c else False
-                        currentToken.type = TokenType.FLOAT if currentToken.value[0].isdigit() else TokenType.SFLOAT
+                        currentToken.type = TokenType.REAL #if currentToken.value[0].isdigit() else TokenType.SFLOAT
                         self.state = STATE.DONE
 
                 # +
@@ -174,8 +175,8 @@ class Lexer:
                 elif self.state == STATE.COMM_BLOCK:
                     if c == "*":
                         self.state = STATE.COMM_BLOCK_END
-                    elif c == '\n':
-                        break
+                    #elif c == '\n':
+                    #    break
                     continue
                 # */ Comment block end
                 elif self.state == STATE.COMM_BLOCK_END:
@@ -183,7 +184,6 @@ class Lexer:
                         self.state = STATE.START
                     elif c == '\n':
                         self.state = STATE.COMM_BLOCK
-                        break
                     elif c != "*":
                         self.state = STATE.COMM_BLOCK
                     continue
@@ -191,7 +191,6 @@ class Lexer:
                 elif self.state == STATE.COMM_LINE:
                     if c == "\n":
                         self.state = STATE.START
-                        break
                     continue
 
                 # < <=
@@ -244,7 +243,6 @@ class Lexer:
         if(self.state == STATE.DONE and currentToken.type != TokenType.EOF):
             if(currentToken.type == TokenType.ID):
                 currentToken.type = self.reservedLookUp(currentToken.value)
-            #currentToken.value += '\0'
-        if self.traceScan and currentToken.type != 0:
+        if currentToken.type != 0:
             self.printCurrent(currentToken)
         return currentToken

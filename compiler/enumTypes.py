@@ -43,6 +43,7 @@ class TokenType(enum.Enum):
     END = 35
     DO = 36
     WHILE = 37 
+    UNTIL = 43 
     CIN = 38
     COUT = 39
     REAL = 40
@@ -82,7 +83,8 @@ reservedWords = {
     "else" : TokenType.ELSE, 
     "end" : TokenType.END, 
     "do" : TokenType.DO, 
-    "while" : TokenType.WHILE, 
+    "while" : TokenType.WHILE,
+    "until":  TokenType.UNTIL,
     "cin" : TokenType.CIN, 
     "cout" : TokenType.COUT, 
     "real" : TokenType.REAL, 

@@ -136,7 +136,7 @@
     -fx-background-color: rgba(28, 183, 236, 0.65);
 } */
 
-.table-view, .table-view:focused, .code-area {
+.table-view, .table-view:focused, .code-area, .tree-view  .tree-cell {
   -fx-background-color: #232834;
   -fx-background-radius: 3;
 }
@@ -160,12 +160,11 @@
     -fx-background-color: red;
 }
 
-/* not use 
-.table-view .show-hide-columns-button {
-    -fx-background-color: white;
-    -fx-border-color: -fx-box-border;
-    -fx-border-insets: 0;
-} */
+.tree-view  .tree-cell {
+    -fx-text-fill: whitesmoke;
+    -fx-font-size: 14;
+    -fx-indent: 35;
+}
 
 .code-area .text {
     -fx-fill: whitesmoke;

@@ -13,6 +13,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeView?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.input.KeyCodeCombination?>
@@ -117,7 +118,7 @@
                            </graphic>
                         </Button>
                         <Button fx:id="lexicalButton" mnemonicParsing="false" onAction="#runLexical" text="Léxico" />
-                        <Button mnemonicParsing="false" text="Sintáctico" />
+                        <Button mnemonicParsing="false" onAction="#runSyntactic" text="Sintáctico" />
                         <Button mnemonicParsing="false" text="Semántico" />
                         <SplitMenuButton mnemonicParsing="false" onAction="#run" text="run">
                           <items>
@@ -160,9 +161,9 @@
                            </children></AnchorPane>
                         <AnchorPane prefHeight="200.0" prefWidth="200.0">
                            <children>
-                              <TabPane layoutX="-8.0" layoutY="14.0" prefHeight="258.4" prefWidth="192.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <TabPane fx:id="compilerTabPane" layoutX="-8.0" layoutY="14.0" prefHeight="258.4" prefWidth="192.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                 <tabs>
-                                  <Tab text="Léxico">
+                                  <Tab fx:id="lexicalTab" text="Léxico">
                                     <content>
                                       <AnchorPane fx:id="pane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
@@ -170,11 +171,11 @@
                                              </children></AnchorPane>
                                     </content>
                                   </Tab>
-                                  <Tab text="Sintáctico">
+                                  <Tab fx:id="syntacticTab" text="Sintáctico">
                                     <content>
                                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <CodeArea prefHeight="301.6" prefWidth="184.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                <TreeView fx:id="syntacticTree" prefHeight="295.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                              </children></AnchorPane>
                                     </content>
                                   </Tab>
