@@ -126,7 +126,7 @@ class Parser:
                 print(out)
         
 
-    def match(self, expected, parent=None, child=None, follow = None):
+    def match(self, expected, parent=None, child=None, follow=None):
         self.last = self.token
         if self.token.type == expected:
             self.getToken()
@@ -269,7 +269,7 @@ class Parser:
             self.match(TokenType.OPENP)
             t.add_child(self.exp(expFollow))
             self.match(TokenType.CLOSEP)
-            self.match(TokenType.SEMI)
+            self.match(TokenType.SEMI, None, None, follow)
             self.checkInput(follow, first)
         return t
 
@@ -309,7 +309,7 @@ class Parser:
                 self.match(TokenType.DEC)
             else:
                 self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
-            self.match(TokenType.SEMI)
+            self.match(TokenType.SEMI, None, None, follow)
             self.checkInput(follow, first)
         return t
 
@@ -319,11 +319,11 @@ class Parser:
         first = [TokenType.CIN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = Tree(self.token)
+            cin = Tree(self.token)
             self.match(TokenType.CIN)
-            self.match(TokenType.ID, t)
-            # FIXME:
-            self.match(TokenType.SEMI)
+            self.match(TokenType.ID, cin)
+            t.add_child(cin)
+            self.match(TokenType.SEMI, None, None, follow)
             self.checkInput(follow, first)
         return t
     
@@ -333,11 +333,12 @@ class Parser:
         first = [TokenType.COUT]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = Tree(self.token)
+            cout = Tree(self.token)
             self.match(TokenType.COUT)
-            # FIXME:
             exp = self.exp(expFollow)
-            self.match(TokenType.SEMI, t, exp)
+            cout.add_child(exp)
+            t.add_child(cout)
+            self.match(TokenType.SEMI, None, None, follow)
             self.checkInput(follow, first)
         return t
 
@@ -502,7 +503,8 @@ class Parser:
         if self.token.type in first:
             if self.token.type == TokenType.OPENP:
                 self.match(TokenType.OPENP)
-                t.add_child(self.exp(expFollow))
+                t = self.exp(expFollow)
+                #t.add_child(self.exp(expFollow))
                 self.match(TokenType.CLOSEP)
             elif self.token.type == TokenType.NUM or self.token.type == TokenType.REAL:
                 t = Tree(self.token)
