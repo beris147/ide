@@ -347,8 +347,8 @@ class Parser:
         first = [TokenType.IF]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = Tree(self.token)
-            self.match(TokenType.IF)
+            # t = Tree(self.token)
+            self.match(TokenType.IF, t)
             self.match(TokenType.OPENP)
             t.add_child(self.exp(expFollow))
             self.match(TokenType.CLOSEP)
