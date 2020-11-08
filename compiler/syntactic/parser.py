@@ -162,12 +162,12 @@ class Parser:
         t = Tree("STMT-LIST")
         #first { int, float, bool , e}
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
-        #self.checkInput(first, follow)
+        self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
                 t.add_child(self.statement(stmtFollow))
                 self.match(TokenType.SEMI, None, None, follow)
-            #self.checkInput(follow, first)
+                self.checkInput(follow, first)
         return t
 
     # stmt → type var-list
@@ -218,7 +218,7 @@ class Parser:
         t = Tree("SENT-LIST")
         #first {if, while, cin, cout, “{”, id, e}
         first = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID, TokenType.DO]
-        #self.checkInput(first, follow)
+        self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
                 t.add_child(self.sentence(sentFollow))
