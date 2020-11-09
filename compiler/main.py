@@ -49,7 +49,6 @@ else:
 
     # Semantic
     analyzer = Analyzer(tree)
-    analyzer.traverse()
 
 """
 lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)

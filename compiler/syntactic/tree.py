@@ -4,13 +4,14 @@ sys.path.append(os.path.relpath("../lexic"))
 from pathlib import Path
 from collections import deque 
 from lexic.token import Token
+from semantic.symtab import SymTable
 
 def printSpaces(Stack):
     print("", end='')
     for _ in range(len(Stack)-1):
         print("\t", end='')
 
-class Tree(dict):
+class ATS(dict):
     def __init__(self, data = ''):
         super().__init__()
         self.__dict__ = self
@@ -18,7 +19,7 @@ class Tree(dict):
         self.children = []
 
     def add_child(self, node):
-        assert isinstance(node, Tree)
+        assert isinstance(node, ATS)
         self.children.append(node)
 
     def build(self, directory):
@@ -57,3 +58,9 @@ class Tree(dict):
                 printSpaces(Stack)
                 print("}")
                 Stack.pop()
+
+    # TODO: Función a utilizar temporalmente por ahora. Aquí va el switch :v
+    def traverse(self, symtab: SymTable) -> None:
+        # print (self.data)
+        for child in self.children:
+            child.traverse(symtab)

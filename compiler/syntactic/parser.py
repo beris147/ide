@@ -3,7 +3,7 @@ sys.path.append(os.path.relpath("../enumTypes"))
 sys.path.append(os.path.relpath("../lexic"))
 
 from pathlib import Path 
-from .tree import Tree
+from .tree import ATS
 from enumTypes import TokenType
 from lexic.token import Token
 
@@ -80,11 +80,11 @@ def inc_dec(last, inc):
     assign = Token(TokenType.ASSIGN, ":=", last.lineo)
     inc_dec = Token(TokenType.PLUS, "+", last.lineo) if inc == True else Token(TokenType.MINUS, "-", last.lineo)
     one = Token(TokenType.NUM, "1", last.lineo)
-    plus = Tree(inc_dec)
-    parent = Tree(assign)
-    parent.add_child(Tree(last))
-    plus.add_child(Tree(last))
-    plus.add_child(Tree(one))
+    plus = ATS(inc_dec)
+    parent = ATS(assign)
+    parent.add_child(ATS(last))
+    plus.add_child(ATS(last))
+    plus.add_child(ATS(one))
     parent.add_child(plus)
     return parent
 
@@ -132,7 +132,7 @@ class Parser:
             self.getToken()
             if parent is not None:
                 if child is None:
-                    parent.add_child(Tree(self.last))
+                    parent.add_child(ATS(self.last))
                 else:
                     parent.add_child(child)
         else:
@@ -140,7 +140,7 @@ class Parser:
 
     # programa → main '{' lista-declaración lista-sentencias '}' $ 
     def program(self, follow):
-        t = Tree("program")
+        t = ATS("program")
         #first main
         first = [TokenType.MAIN]
         self.checkInput(first, follow)
@@ -157,7 +157,7 @@ class Parser:
 
     # stmt-list→ { stmt; }
     def statementsList(self, follow):
-        t = Tree("STMT-LIST")
+        t = ATS("STMT-LIST")
         #first { int, float, bool , e}
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
@@ -170,7 +170,7 @@ class Parser:
 
     # stmt → type var-list
     def statement(self, follow):
-        t = Tree("STATEMENT")
+        t = ATS("STATEMENT")
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -182,11 +182,11 @@ class Parser:
 
     # type → int | float | bool
     def varType(self, follow):
-        t = Tree("TYPE")
+        t = ATS("TYPE")
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = Tree(self.token)
+            t = ATS(self.token)
             if self.token.type == TokenType.INT:
                 self.match(TokenType.INT)
             elif self.token.type == TokenType.REAL:
@@ -200,7 +200,7 @@ class Parser:
 
     # vars-list → { identificador, } identificador
     def varsList(self, follow):
-        t = Tree("VAR-LIST")
+        t = ATS("VAR-LIST")
         first = [TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -213,7 +213,7 @@ class Parser:
 
     # sent-list → { sent }
     def sentencesList(self, follow):
-        t = Tree("SENT-LIST")
+        t = ATS("SENT-LIST")
         #first {if, while, cin, cout, “{”, id, e}
         first = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID, TokenType.DO]
         self.checkInput(first, follow)
@@ -225,7 +225,7 @@ class Parser:
 
     # sent → select (if) | iteration (while) | sent-cin | sent-cout | block ( { ) | assign (id) 
     def sentence(self, follow):
-        t = Tree("SENTENCE")
+        t = ATS("SENTENCE")
         #first {if, while, cin, cout, “{”, id}
         first = [
             TokenType.IF, TokenType.WHILE, 
@@ -254,7 +254,7 @@ class Parser:
     
     # repeat → do block until ( exp );
     def repeat(self, follow):
-        t = Tree("REPEAT")
+        t = ATS("REPEAT")
         first = [TokenType.DO]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -273,7 +273,7 @@ class Parser:
 
     # iteration → while ( exp )  block
     def iteration(self, follow):
-        t = Tree("ITERATION")
+        t = ATS("ITERATION")
         first = [TokenType.WHILE]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -287,14 +287,14 @@ class Parser:
 
     # assign → id := exp ;  
     def assign(self, follow):
-        t = Tree("SENT-ASSIGN")
+        t = ATS("SENT-ASSIGN")
         first = [TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
-            id = Tree(self.token)
+            id = ATS(self.token)
             self.match(TokenType.ID)
             if self.token.type == TokenType.ASSIGN:
-                parent = Tree(self.token)
+                parent = ATS(self.token)
                 self.match(TokenType.ASSIGN)
                 parent.add_child(id)
                 parent.add_child(self.exp(expFollow))
@@ -313,11 +313,11 @@ class Parser:
 
     # sent-cin → cin id ;
     def sent_cin(self, follow):
-        t = Tree("SENT-CIN")
+        t = ATS("SENT-CIN")
         first = [TokenType.CIN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            cin = Tree(self.token)
+            cin = ATS(self.token)
             self.match(TokenType.CIN)
             self.match(TokenType.ID, cin)
             t.add_child(cin)
@@ -327,11 +327,11 @@ class Parser:
     
     # sent-cout → cout exp ;
     def sent_cout(self, follow):
-        t = Tree("SENT-COUT")
+        t = ATS("SENT-COUT")
         first = [TokenType.COUT]
         self.checkInput(first, follow)
         if self.token.type in first:
-            cout = Tree(self.token)
+            cout = ATS(self.token)
             self.match(TokenType.COUT)
             exp = self.exp(expFollow)
             cout.add_child(exp)
@@ -342,7 +342,7 @@ class Parser:
 
     #  select → if ( exp ) then block [else block] end
     def select(self, follow):
-        t = Tree("SELECT")
+        t = ATS("SELECT")
         first = [TokenType.IF]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -368,7 +368,7 @@ class Parser:
 
     # block → “{“ sent-list “ }”
     def block(self, follow):
-        t = Tree("BLOCK")
+        t = ATS("BLOCK")
         first = [TokenType.OPENC]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -380,7 +380,7 @@ class Parser:
 
     #exp → exp-simple [relación exp-simple]
     def exp(self, follow):
-        t = Tree("EXP")
+        t = ATS("EXP")
         # first { (, num, id }
         first = [TokenType.OPENP, TokenType.NUM, TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
@@ -401,13 +401,13 @@ class Parser:
 
     #relacion → <= | < | > | >= | ==| !=
     def relation(self, follow):
-        t = Tree("RELATION")
+        t = ATS("RELATION")
         #first { <= , < , > , >= , = , != }
         first = [TokenType.LOREQ, TokenType.LT, TokenType.BT, TokenType.BOREQ, TokenType.EQ, TokenType.DIFF]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type in first:
-                t = Tree(self.token)
+                t = ATS(self.token)
                 self.match(self.token.type)
             else:
                 self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
@@ -416,7 +416,7 @@ class Parser:
 
     # exp-simple → term {suma-op term}
     def simple_exp(self, follow):
-        t = Tree("SIMPLE EXP")
+        t = ATS("SIMPLE EXP")
         # first { (, num, id }
         first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
@@ -442,14 +442,14 @@ class Parser:
 
     # suma-op → + | - | ++ | --
     def add_op(self, follow):
-        t = Tree()
+        t = ATS()
         #first { +, -, ++, - - }
         first = [TokenType.PLUS, TokenType.MINUS, TokenType.INC, TokenType.DEC]
         self.checkInput(first, follow)
         if self.token.type in first:
             options = [TokenType.PLUS, TokenType.MINUS]
             if self.token.type in options:
-                t = Tree(self.token)
+                t = ATS(self.token)
                 self.match(self.token.type)
             elif self.token.type == TokenType.INC: #change this for a := a + 1 FALTA
                 t = inc_dec(self.last, True)
@@ -462,7 +462,7 @@ class Parser:
 
     # term → factor {mult-op factor}
     def term(self, follow):
-        t = Tree("TERM")
+        t = ATS("TERM")
         #first { (, num, id }
         first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
@@ -479,13 +479,13 @@ class Parser:
 
     # mult-op → * | / |%
     def mult_op(self, follow):
-        t = Tree("MULT")
+        t = ATS("MULT")
         # first { *, /, % }
         first = [TokenType.MULT, TokenType.DIV, TokenType.MOD]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type in first:
-                t = Tree(self.token)
+                t = ATS(self.token)
                 self.match(self.token.type)
             else:
                 self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
@@ -494,7 +494,7 @@ class Parser:
 
     # factor → ( exp ) | numero | id 
     def factor(self, follow):
-        t = Tree("FACTOR")
+        t = ATS("FACTOR")
         # first { (, num, id }
         first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
@@ -505,10 +505,10 @@ class Parser:
                 #t.add_child(self.exp(expFollow))
                 self.match(TokenType.CLOSEP)
             elif self.token.type == TokenType.NUM or self.token.type == TokenType.REAL:
-                t = Tree(self.token)
+                t = ATS(self.token)
                 self.match(self.token.type)
             elif self.token.type == TokenType.ID:
-                t = Tree(self.token)
+                t = ATS(self.token)
                 self.match(TokenType.ID)
             else:
                 self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
