@@ -1,10 +1,12 @@
 from semantic.node import SDT
 
-class SymTable:
+class SymTable(dict):
     def __init__(self) -> None:
+        super().__init__()
+        self.__dict__ = self
         self.vars = {}
 
-    def lookup(self, name):
+    def lookup(self, name: str):
         if name in self.vars:
             return self.vars[name]
         else:
@@ -29,9 +31,11 @@ class SymTable:
             # throw error
             pass
 
-    def getAttr(self, name, attribute):
+    def getAttr(self, name, attribute = None):
         if name in self.vars:
-            if attribute in self.vars[name]:
+            if attribute is None:
+                return {'type': self.vars[name]['type'], 'val': self.vars[name]['val']}
+            elif attribute in self.vars[name]:
                 return self.vars[name][attribute]
             else:
                 # throw error
