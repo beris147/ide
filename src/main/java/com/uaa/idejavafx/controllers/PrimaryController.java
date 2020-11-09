@@ -386,7 +386,7 @@ public class PrimaryController implements Initializable {
                     item = createTree(doc, null);
                 else {
                     // Get value from data object
-                    if (key.equals("data") && doc.isJsonObject()) {
+                    if (key.equals("sdt") && doc.isJsonObject()) {
                         JsonObject data = doc.getAsJsonObject();
                         item = createTree(data.get("value"), null);
                     }
