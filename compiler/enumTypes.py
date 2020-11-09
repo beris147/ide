@@ -52,6 +52,10 @@ class TokenType(enum.Enum):
     #END OF FILE
     EOF = 200
     ERROR = 400
+    
+    # FIXME: Debug for semantic
+    def __repr__(self):
+        return str(self.name)
 
 class STATE(enum.Enum):
     START = 0

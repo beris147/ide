@@ -6,4 +6,8 @@ class SDT:
         self.val = None
 
     def __repr__(self):
-        return repr(self.data)
+        # Only syntactic
+        # return repr(self.data)
+
+        # FIXME: Debug for semantic
+        return str(dict(type=self.type, val=self.val, token=repr(self.data)))
