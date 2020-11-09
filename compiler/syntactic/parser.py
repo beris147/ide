@@ -126,7 +126,7 @@ class Parser:
                 print(out)
         
 
-    def match(self, expected, parent=None, child=None, follow = None):
+    def match(self, expected, parent=None, child=None):
         self.last = self.token
         if self.token.type == expected:
             self.getToken()
@@ -137,8 +137,6 @@ class Parser:
                     parent.add_child(child)
         else:
             self.syntaxError(f' expected {expected} received {self.token}', self.lex.lineo)
-            if follow is None or self.token.type not in follow:
-                self.getToken()
 
     # programa → main '{' lista-declaración lista-sentencias '}' $ 
     def program(self, follow):
@@ -162,12 +160,12 @@ class Parser:
         t = Tree("STMT-LIST")
         #first { int, float, bool , e}
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
-        #self.checkInput(first, follow)
+        self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
                 t.add_child(self.statement(stmtFollow))
-                self.match(TokenType.SEMI, None, None, follow)
-            #self.checkInput(follow, first)
+                self.match(TokenType.SEMI)
+                self.checkInput(follow, first)
         return t
 
     # stmt → type var-list
@@ -218,7 +216,7 @@ class Parser:
         t = Tree("SENT-LIST")
         #first {if, while, cin, cout, “{”, id, e}
         first = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID, TokenType.DO]
-        #self.checkInput(first, follow)
+        self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
                 t.add_child(self.sentence(sentFollow))
@@ -319,10 +317,10 @@ class Parser:
         first = [TokenType.CIN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = Tree(self.token)
+            cin = Tree(self.token)
             self.match(TokenType.CIN)
-            self.match(TokenType.ID, t)
-            # FIXME:
+            self.match(TokenType.ID, cin)
+            t.add_child(cin)
             self.match(TokenType.SEMI)
             self.checkInput(follow, first)
         return t
@@ -333,11 +331,12 @@ class Parser:
         first = [TokenType.COUT]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = Tree(self.token)
+            cout = Tree(self.token)
             self.match(TokenType.COUT)
-            # FIXME:
             exp = self.exp(expFollow)
-            self.match(TokenType.SEMI, t, exp)
+            cout.add_child(exp)
+            t.add_child(cout)
+            self.match(TokenType.SEMI)
             self.checkInput(follow, first)
         return t
 
@@ -502,7 +501,8 @@ class Parser:
         if self.token.type in first:
             if self.token.type == TokenType.OPENP:
                 self.match(TokenType.OPENP)
-                t.add_child(self.exp(expFollow))
+                t = self.exp(expFollow)
+                #t.add_child(self.exp(expFollow))
                 self.match(TokenType.CLOSEP)
             elif self.token.type == TokenType.NUM or self.token.type == TokenType.REAL:
                 t = Tree(self.token)
