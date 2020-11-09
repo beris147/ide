@@ -69,12 +69,12 @@ class ATS(dict):
                 initizalizeStmtList(child, symtab)
             if(child.sdt.data == "SENT-LIST"):
                 for node in child.children:
-                    vec = postOrder(node, SymTable)
+                    vec = postOrder(node, symtab)
                     print(vec)
 
 def initizalizeStmtList(node: ATS, symtab: SymTable):
     if isinstance(node.sdt.data, Token):
-        if node.sdt.data.type in [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]:
+        if node.sdt.data.type in [TokenType.INT, TokenType.REAL]:
             node.sdt.type = node.sdt.data.type
         elif node.sdt.data.type == TokenType.ID:
             symtab.insert(node.sdt)
@@ -103,6 +103,28 @@ def postOrder(node: ATS, symtab: SymTable):
                 # ser un ID hay que buscarlo en la tabla de simbolos, si es reservado no se hace nada
                 # si es un intermedio toma los valores que tiene su primer hijo. 
                 # Los operadores hacen otras cosas
+                if isinstance(temp.node.sdt.data, Token):
+                    if temp.node.sdt.data.type == TokenType.ID:
+                        # print (temp.node.sdt.data.value)
+                        if symtab.lookup(temp.node.sdt.data.value) is not None:
+                            attrs = symtab.getAttr(temp.node.sdt.data.value)
+                            temp.node.sdt.type = attrs['type']
+                            temp.node.sdt.val = attrs['val']
+                    elif temp.node.sdt.data.type in [TokenType.NUM, TokenType.FLOAT]:
+                        temp.node.sdt.type = TokenType.INT if temp.node.sdt.data.type == TokenType.NUM else TokenType.REAL
+                        temp.node.sdt.val = temp.node.sdt.data.value
+                    elif temp.node.sdt.data.type == TokenType.ASSIGN:
+                        if (temp.node.children[0].sdt.type == temp.node.children[1].sdt.type):
+                            # temp.node.children[0].sdt.val = temp.node.children[1].sdt.val
+                            symtab.setAttr(temp.node.children[0].sdt.data.value, "val", temp.node.children[1].sdt.val)
+                        else:
+                            # throw error different types
+                            pass
+                else:
+                    temp.node.sdt.type = temp.node.children[0].sdt.type
+                    temp.node.sdt.val = temp.node.children[0].sdt.val
+                    # print (len(temp.node.children))
+
                 ans.append(temp.node.sdt)
                 condition = len(Stack)>0 and temp.index == len(Stack[len(Stack)-1].node.children) - 1
             if len(Stack) > 0:

@@ -49,7 +49,7 @@ else:
 
     # Semantic
     analyzer = Analyzer(tree)
-    #print (analyzer.symtab.__dict__)
+    #print (analyzer.symtab)
 
 """
 lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)
