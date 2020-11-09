@@ -76,17 +76,30 @@ factorFollow = [
     TokenType.DEC, TokenType.CLOSEP, TokenType.SEMI
 ] + relationOperators
 
+
+def get_mock_term(value):
+    term = ATS("TERM")
+    fact = ATS("FACTOR")
+    fact.add_child(ATS(value))
+    term.add_child(fact)
+    return term
+
+def get_mock_exp(node, a, b):
+    simple = ATS("SIMPLE-EXP")
+    node.add_child(get_mock_term(a))
+    node.add_child(get_mock_term(b))
+    simple.add_child(node)
+    exp = ATS("EXP")
+    exp.add_child(simple)
+    return exp
+
 def inc_dec(last, inc):
-    assign = Token(TokenType.ASSIGN, ":=", last.lineo)
-    inc_dec = Token(TokenType.PLUS, "+", last.lineo) if inc == True else Token(TokenType.MINUS, "-", last.lineo)
+    assign = ATS(Token(TokenType.ASSIGN, ":=", last.lineo))
+    inc_dec = ATS(Token(TokenType.PLUS, "+", last.lineo)) if inc == True else ATS(Token(TokenType.MINUS, "-", last.lineo))
     one = Token(TokenType.NUM, "1", last.lineo)
-    plus = ATS(inc_dec)
-    parent = ATS(assign)
-    parent.add_child(ATS(last))
-    plus.add_child(ATS(last))
-    plus.add_child(ATS(one))
-    parent.add_child(plus)
-    return parent
+    assign.add_child(ATS(last))
+    assign.add_child(get_mock_exp(inc_dec, last, one))
+    return assign
 
 class Error:
     def __init__(self, message = "", lineo = 0):
