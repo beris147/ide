@@ -4,6 +4,7 @@ sys.path.append(os.path.relpath("../lexic"))
 from pathlib import Path
 from collections import deque 
 from lexic.token import Token
+from semantic.node import SDT
 from semantic.symtab import SymTable
 
 def printSpaces(Stack):
@@ -12,10 +13,10 @@ def printSpaces(Stack):
         print("\t", end='')
 
 class ATS(dict):
-    def __init__(self, data = ''):
+    def __init__(self, sdt = ''):
         super().__init__()
         self.__dict__ = self
-        self.data = data
+        self.sdt = SDT(sdt)
         self.children = []
 
     def add_child(self, node):
@@ -31,7 +32,7 @@ class ATS(dict):
     def printPreOrder(self): 
         Stack = deque([]) 
         Preorder = [] 
-        print(self.data)
+        print(self.sdt)
         Preorder.append(self)
         Brackets = list()
         Stack.append(self) 
@@ -50,8 +51,8 @@ class ATS(dict):
                     flag = 1
                     Stack.append(parent.children[i])
                     printSpaces(Stack)
-                    lineo = parent.children[i].data.lineo if isinstance(parent.children[i].data, Token) else ""
-                    print(parent.children[i].data, lineo)
+                    lineo = parent.children[i].sdt.lineo if isinstance(parent.children[i].sdt, Token) else ""
+                    print(parent.children[i].sdt, lineo)
                     Preorder.append(parent.children[i]) 
                     break
             if flag == 0:
@@ -61,6 +62,6 @@ class ATS(dict):
 
     # TODO: Función a utilizar temporalmente por ahora. Aquí va el switch :v
     def traverse(self, symtab: SymTable) -> None:
-        # print (self.data)
+        # print (self.sdt)
         for child in self.children:
             child.traverse(symtab)
