@@ -2,7 +2,7 @@ import argparse
 from lexic.lex import Lex
 from enumTypes import TokenType
 from syntactic.parser import Parser
-"""
+
 def str2bool(v):
     if isinstance(v, bool):
        return v
