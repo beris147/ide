@@ -133,7 +133,7 @@ class Parser:
     def syntaxError(self, msg, lineo):
         if self.lastError != lineo:
             self.lastError = lineo
-            out = f'>>>Syntaxt error at line {lineo} {msg}'
+            out = f'>>>Syntax error at line {lineo} {msg}'
             self.output.write(out + "\n")
             if self.traceParser:
                 print(out)
@@ -153,12 +153,12 @@ class Parser:
 
     # programa → main '{' lista-declaración lista-sentencias '}' $ 
     def program(self, follow):
-        t = ATS("program")
+        t = ATS("main")
         #first main
         first = [TokenType.MAIN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            self.match(TokenType.MAIN, t)
+            self.match(TokenType.MAIN)
             self.checkInput([TokenType.OPENC], follow)
             self.match(TokenType.OPENC)
             t.add_child(self.statementsList(stmtListFollow))

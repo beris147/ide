@@ -4,6 +4,7 @@ sys.path.append(os.path.relpath("../lexic"))
 
 from pathlib import Path
 from collections import deque 
+from collections import namedtuple
 from lexic.token import Token
 from semantic.node import SDT
 from semantic.symtab import SymTable
@@ -63,22 +64,48 @@ class ATS(dict):
 
     # TODO: Función a utilizar temporalmente por ahora. Aquí va el switch :v
     def traverse(self, symtab: SymTable) -> None:
-        # print (self.sdt)
-
-        if isinstance(self.sdt.data, Token):
-            if self.sdt.data.type in [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]:
-                self.sdt.type = self.sdt.data.type
-
-            elif self.sdt.data.type == TokenType.ID:
-                if symtab.lookup(self.sdt.data.value) is None:
-                    if self.sdt.type is not None:
-                        symtab.insert(self.sdt)
-                    else:
-                        # throw error
-                        pass
-                else:
-                    symtab.insert(self.sdt)
-
         for child in self.children:
-            child.sdt.type = self.sdt.type
-            child.traverse(symtab)
+            if(child.sdt.data == "STMT-LIST"):
+                initizalizeStmtList(child, symtab)
+            if(child.sdt.data == "SENT-LIST"):
+                for node in child.children:
+                    vec = postOrder(node, SymTable)
+                    print(vec)
+
+def initizalizeStmtList(node: ATS, symtab: SymTable):
+    if isinstance(node.sdt.data, Token):
+        if node.sdt.data.type in [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]:
+            node.sdt.type = node.sdt.data.type
+        elif node.sdt.data.type == TokenType.ID:
+            symtab.insert(node.sdt)
+    for child in node.children:
+        child.sdt.type = node.sdt.type
+        initizalizeStmtList(child, symtab)
+
+
+def postOrder(node: ATS, symtab: SymTable):
+    ans = []
+    Stack = deque([])
+    index = 0
+    Pair = namedtuple("Pair", ["node", "index"])
+    while node is not None or len(Stack) > 0:
+        if node is not None: #Si es no None aun tenemos nodos a la izquierda
+            Stack.append(Pair(node, index))
+            index = 0
+            node = node.children[0] if len(node.children) >= 1 else None
+        else: # Si llegamos al final de la izquierda vaciamos los que esten al nivel
+            condition = True
+            while condition:
+                temp = Stack[len(Stack)-1] 
+                Stack.pop()
+                # Los que vamos sacando son los hijos, de momento los meto a la lista para tenerlos en 
+                # el orden que van saliendo, de aqui podemos comprobar si un nodo es terminal, si llega a 
+                # ser un ID hay que buscarlo en la tabla de simbolos, si es reservado no se hace nada
+                # si es un intermedio toma los valores que tiene su primer hijo. 
+                # Los operadores hacen otras cosas
+                ans.append(temp.node.sdt)
+                condition = len(Stack)>0 and temp.index == len(Stack[len(Stack)-1].node.children) - 1
+            if len(Stack) > 0:
+                index = temp.index + 1
+                node = Stack[len(Stack)-1].node.children[index]
+    return ans
