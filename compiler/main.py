@@ -2,6 +2,7 @@ import argparse
 from lexic.lex import Lex
 from enumTypes import TokenType
 from syntactic.parser import Parser
+from semantic.analyzer import Analyzer
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -44,7 +45,12 @@ if args.parser == False:
             break
 else:
     parser = Parser(lex, dir, args.traceParser)
-    parser.parse()
+    tree = parser.parse()
+
+    # Semantic
+    analyzer = Analyzer(tree)
+    analyzer.traverse()
+
 """
 lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)
 parser = Parser(lex, "/home/beristain/Documents/uaa/compis", True)
