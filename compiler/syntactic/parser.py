@@ -170,14 +170,13 @@ class Parser:
 
     # stmt → type var-list
     def statement(self, follow):
-        t = ATS("STATEMENT")
+        t = ATS("STMT")
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = self.varType(typeFollow)
-            t.add_child(self.varsList(varListFollow))
-            #t.add_child(parent)
-            #self.checkInput(follow, first)
+            stmt = self.varType(typeFollow)
+            stmt.add_child(self.varsList(varListFollow))
+            t.add_child(stmt)
         return t
 
     # type → int | float | bool
@@ -225,7 +224,7 @@ class Parser:
 
     # sent → select (if) | iteration (while) | sent-cin | sent-cout | block ( { ) | assign (id) 
     def sentence(self, follow):
-        t = ATS("SENTENCE")
+        t = ATS("SENT")
         #first {if, while, cin, cout, “{”, id}
         first = [
             TokenType.IF, TokenType.WHILE, 
@@ -236,19 +235,19 @@ class Parser:
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type == TokenType.IF:
-                t = self.select(selectFollow)
+                t.add_child(self.select(selectFollow))
             elif self.token.type == TokenType.CIN:
-                t = self.sent_cin(cinFollow)
+                t.add_child(self.sent_cin(cinFollow))
             elif self.token.type == TokenType.COUT:
-                t = self.sent_cout(coutFollow)
+                t.add_child(self.sent_cout(coutFollow))
             elif self.token.type == TokenType.OPENC:
-                t = self.block(blockFollow)
+                t.add_child(self.block(blockFollow))
             elif self.token.type == TokenType.WHILE:
-                t = self.iteration(iterationFollow)
+                t.add_child(self.iteration(iterationFollow))
             elif self.token.type == TokenType.ID:
-                t = self.assign(assignFollow)
+                t.add_child(self.assign(assignFollow))
             elif self.token.type == TokenType.DO:
-                t = self.repeat(repeatFollow)
+                t.add_child(self.repeat(repeatFollow))
             self.checkInput(follow, first)
         return t
     
@@ -346,7 +345,6 @@ class Parser:
         first = [TokenType.IF]
         self.checkInput(first, follow)
         if self.token.type in first:
-            # t = Tree(self.token)
             self.match(TokenType.IF, t)
             self.match(TokenType.OPENP)
             t.add_child(self.exp(expFollow))
@@ -385,17 +383,16 @@ class Parser:
         first = [TokenType.OPENP, TokenType.NUM, TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = self.simple_exp(simpleExpFollow)
-            #t.add_child(self.simple_exp(simpleExpFollow))
+            parent = self.simple_exp(simpleExpFollow)
             options = [TokenType.LOREQ, TokenType.LT, TokenType.BT, TokenType.BOREQ, TokenType.EQ, TokenType.DIFF]
             if self.token.type in options:
-                aux = t
-                t = self.relation(relationFollow)
-                t.add_child(aux)
-                t.add_child(self.simple_exp(simpleExpFollow))
-                """t.add_child(self.relation(relationFollow))
-                t.add_child(self.simple_exp(simpleExpFollow))"""
-            #t.add_child(parent)
+                aux = parent
+                parent = ATS("RELATION")
+                child = self.relation(relationFollow)
+                child.add_child(aux)
+                child.add_child(self.simple_exp(simpleExpFollow))
+                parent.add_child(child)
+            t.add_child(parent)
             self.checkInput(follow, first)
         return t
 
@@ -416,27 +413,23 @@ class Parser:
 
     # exp-simple → term {suma-op term}
     def simple_exp(self, follow):
-        t = ATS("SIMPLE EXP")
+        t = ATS("SIMPLE-EXP")
         # first { (, num, id }
         first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = self.term(termFollow)
-            #t.add_child(self.term(termFollow))
+            parent = self.term(termFollow)
             while(self.token.type in [TokenType.PLUS, TokenType.MINUS, TokenType.INC, TokenType.DEC]):
                 type = self.token.type
-                """t.add_child(self.add_op(addOpFollow))
                 if type is not TokenType.INC and type is not TokenType.DEC:
-                    t.add_child(self.term(termFollow))"""
-                if type is not TokenType.INC and type is not TokenType.DEC:
-                    aux = t
-                    t = self.add_op(addOpFollow)
-                    t.add_child(aux)
-                    t.add_child(self.term(termFollow))
+                    aux = parent
+                    parent = self.add_op(addOpFollow)
+                    parent.add_child(aux)
+                    parent.add_child(self.term(termFollow))
                 else:
                     t = inc_dec(self.last, self.last.type == TokenType.INC)
                     self.match(self.token.type)
-            #t.add_child(parent)
+            t.add_child(parent)
             self.checkInput(follow, first)
         return t
 
@@ -467,19 +460,19 @@ class Parser:
         first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = self.factor(factorFollow)
+            parent = self.factor(factorFollow)
             while(self.token.type in [TokenType.MULT,TokenType.DIV,TokenType.MOD]):
-                aux = t
-                t = self.mult_op(multOpFollow)
-                t.add_child(aux)
-                t.add_child(self.factor(factorFollow))
-            #t.add_child(parent)
+                aux = parent
+                parent = self.mult_op(multOpFollow)
+                parent.add_child(aux)
+                parent.add_child(self.factor(factorFollow))
+            t.add_child(parent)
             self.checkInput(follow, first)
         return t
 
     # mult-op → * | / |%
     def mult_op(self, follow):
-        t = ATS("MULT")
+        t = ATS("MULT-OP")
         # first { *, /, % }
         first = [TokenType.MULT, TokenType.DIV, TokenType.MOD]
         self.checkInput(first, follow)
@@ -501,15 +494,12 @@ class Parser:
         if self.token.type in first:
             if self.token.type == TokenType.OPENP:
                 self.match(TokenType.OPENP)
-                t = self.exp(expFollow)
-                #t.add_child(self.exp(expFollow))
+                t.add_child(self.exp(expFollow))
                 self.match(TokenType.CLOSEP)
             elif self.token.type == TokenType.NUM or self.token.type == TokenType.REAL:
-                t = ATS(self.token)
-                self.match(self.token.type)
+                self.match(self.token.type, t)
             elif self.token.type == TokenType.ID:
-                t = ATS(self.token)
-                self.match(TokenType.ID)
+                self.match(TokenType.ID, t)
             else:
                 self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
             self.checkInput(follow, first)
