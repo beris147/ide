@@ -172,7 +172,7 @@ class Parser:
     def statementsList(self, follow):
         t = ATS("STMT-LIST")
         #first { int, float, bool , e}
-        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
@@ -184,7 +184,7 @@ class Parser:
     # stmt → type var-list
     def statement(self, follow):
         t = ATS("STMT")
-        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             stmt = self.varType(typeFollow)
@@ -195,14 +195,14 @@ class Parser:
     # type → int | float | bool
     def varType(self, follow):
         t = ATS("TYPE")
-        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             t = ATS(self.token)
             if self.token.type == TokenType.INT:
                 self.match(TokenType.INT)
-            elif self.token.type == TokenType.FLOAT:
-                self.match(TokenType.FLOAT)
+            elif self.token.type == TokenType.REAL:
+                self.match(TokenType.REAL)
             elif self.token.type == TokenType.BOOLEAN:
                 self.match(TokenType.BOOLEAN)
             else:
