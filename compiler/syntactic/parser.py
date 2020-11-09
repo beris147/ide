@@ -43,7 +43,7 @@ assignFollow = stmtListFollow
 repeatFollow = stmtListFollow
 
 #common operators follow  { (, num, id }
-operators = [TokenType.OPENP, TokenType.NUM, TokenType.REAL, TokenType.ID]
+operators = [TokenType.OPENP, TokenType.NUM, TokenType.FLOAT, TokenType.ID]
 
 #exp follow {  ),  ; }
 expFollow = [TokenType.CLOSEP, TokenType.SEMI]
@@ -172,7 +172,7 @@ class Parser:
     def statementsList(self, follow):
         t = ATS("STMT-LIST")
         #first { int, float, bool , e}
-        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             while self.token.type in first:
@@ -184,7 +184,7 @@ class Parser:
     # stmt → type var-list
     def statement(self, follow):
         t = ATS("STMT")
-        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             stmt = self.varType(typeFollow)
@@ -195,14 +195,14 @@ class Parser:
     # type → int | float | bool
     def varType(self, follow):
         t = ATS("TYPE")
-        first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        first = [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
             t = ATS(self.token)
             if self.token.type == TokenType.INT:
                 self.match(TokenType.INT)
-            elif self.token.type == TokenType.REAL:
-                self.match(TokenType.REAL)
+            elif self.token.type == TokenType.FLOAT:
+                self.match(TokenType.FLOAT)
             elif self.token.type == TokenType.BOOLEAN:
                 self.match(TokenType.BOOLEAN)
             else:
@@ -393,7 +393,7 @@ class Parser:
     def exp(self, follow):
         t = ATS("EXP")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM, TokenType.REAL, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM, TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             parent = self.simple_exp(simpleExpFollow)
@@ -428,7 +428,7 @@ class Parser:
     def simple_exp(self, follow):
         t = ATS("SIMPLE-EXP")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             parent = self.term(termFollow)
@@ -470,7 +470,7 @@ class Parser:
     def term(self, follow):
         t = ATS("TERM")
         #first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             parent = self.factor(factorFollow)
@@ -502,14 +502,14 @@ class Parser:
     def factor(self, follow):
         t = ATS("FACTOR")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type == TokenType.OPENP:
                 self.match(TokenType.OPENP)
                 t.add_child(self.exp(expFollow))
                 self.match(TokenType.CLOSEP)
-            elif self.token.type == TokenType.NUM or self.token.type == TokenType.REAL:
+            elif self.token.type == TokenType.NUM or self.token.type == TokenType.FLOAT:
                 self.match(self.token.type, t)
             elif self.token.type == TokenType.ID:
                 self.match(TokenType.ID, t)
