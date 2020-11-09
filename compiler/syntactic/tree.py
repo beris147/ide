@@ -1,3 +1,4 @@
+from enumTypes import TokenType
 import sys, os
 sys.path.append(os.path.relpath("../lexic"))
 
@@ -63,5 +64,21 @@ class ATS(dict):
     # TODO: Función a utilizar temporalmente por ahora. Aquí va el switch :v
     def traverse(self, symtab: SymTable) -> None:
         # print (self.sdt)
+
+        if isinstance(self.sdt.data, Token):
+            if self.sdt.data.type in [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]:
+                self.sdt.type = self.sdt.data.type
+
+            elif self.sdt.data.type == TokenType.ID:
+                if symtab.lookup(self.sdt.data.value) is None:
+                    if self.sdt.type is not None:
+                        symtab.insert(self.sdt)
+                    else:
+                        # throw error
+                        pass
+                else:
+                    symtab.insert(self.sdt)
+
         for child in self.children:
+            child.sdt.type = self.sdt.type
             child.traverse(symtab)
