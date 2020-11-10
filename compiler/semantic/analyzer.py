@@ -45,9 +45,11 @@ class Analyzer:
             if node.sdt.data.type in [TokenType.INT, TokenType.REAL]:
                 node.sdt.type = node.sdt.data.type
             elif node.sdt.data.type == TokenType.ID:
-                # TODO: throw error -> redeclarate
+                # Checks if var exists in symtab and throw an error
                 if symtab.insert(node.sdt) is False:
-                    node.sdt.type = TokenType.ERROR
+                    token = node.sdt.data
+                    self.semanticError(f'{token} previously declared', token.lineo)
+                    updateSDT(node.sdt, TokenType.ERROR, None)
 
         for child in node.children:
             child.sdt.type = node.sdt.type
