@@ -136,13 +136,13 @@ class Analyzer:
         if a.sdt.type == b.sdt.type:
             val = math.floor(b.sdt.val) if a.sdt.type == TokenType.INT else b.sdt.val
             symtab.setAttr(a.sdt.data.value, "val", val)
+        elif b.sdt.type == TokenType.BOOLEAN:
+            self.semanticError(f'incompatible types {b.sdt.type} cannot be converted to {a.sdt.type}', a.sdt.lineo)
+            updateSDT(node.sdt, TokenType.ERROR)
         elif a.sdt.type == TokenType.REAL:
             symtab.setAttr(a.sdt.data.value, "val", b.sdt.val*1.0)
         elif a.sdt.type == TokenType.INT:
             symtab.setAttr(a.sdt.data.value, "val", math.floor(b.sdt.val))
-        else:
-            # throw error incopatible type variable
-            pass
 
     def incdecAssignOperation(self, node: CST, symtab: SymTable):
         #a := a + 1
