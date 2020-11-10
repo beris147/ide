@@ -16,6 +16,7 @@ class Analyzer:
         self.tree = tree
         self.symtab = SymTable()
         self.traceAnalysis = traceAnalysis
+        self.directory = directory
         Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
         self.output = open(directory+"/compilador/semantic.o","w+")
         self.lastLineoError = 0
@@ -37,6 +38,7 @@ class Analyzer:
                     self.postOrder(node, self.symtab)
         if self.traceAnalysis:
             print(self.symtab)
+        self.symtab.build(self.directory)
         self.output.close()
         return self.tree
 

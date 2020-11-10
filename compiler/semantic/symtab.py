@@ -1,5 +1,7 @@
+import json
 from semantic.node import SDT
 from enumTypes import TokenType
+from pathlib import Path
 
 class SymTable(dict):
     def __init__(self) -> None:
@@ -7,6 +9,12 @@ class SymTable(dict):
         self.__dict__ = self
         self.vars = {}
         self.update = True
+
+    def build(self, directory):
+        jsonObj = json.dumps(self, default=str)
+        Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
+        with open(directory+"/compilador/symtab.json", "w") as fileJSON:
+            fileJSON.write(jsonObj)
 
     # Determinates if symtable saves new values
     def set_update(self, val: bool):
