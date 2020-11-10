@@ -8,63 +8,46 @@ class SymTable(dict):
         self.vars = {}
         self.update = True
 
-    def lookup(self, name: str):
-        if name in self.vars:
-            return self.vars[name]
-        else:
-            return None
-
+    # Determinates if symtable saves new values
     def set_update(self, val: bool):
         self.update = val
 
-    def insert(self, sdt: SDT):
-        name = sdt.data.value
+    # Searches the var in symtable
+    def lookup(self, name: str) -> bool:
+        return name in self.vars
 
-        if name in self.vars:
-            self.vars[name]['lines'].append(sdt.data.lineo)
-        else:
+    # Inserts the var in symtable. Returns False if the var doesn't exist 
+    def insert(self, sdt: SDT) -> bool:
+        name = sdt.data.value
+        if name not in self.vars:
             self.vars[name] = {'type': sdt.type, 'lines': [sdt.data.lineo], 'val': None}
-    
+            return True
+        else:
+            return False
+
+    # Adds the line of present var
+    def addLine(self, sdt: SDT):
+        name = sdt.data.value
+        assert name in self.vars
+        # Add line
+        self.vars[name]['lines'].append(sdt.data.lineo)
+
+    # Sets the value of a var's attribute
     def setAttr(self, name, attribute, value):
         if self.update:
-            if name in self.vars:
-                if attribute in self.vars[name]:
-                    self.vars[name][attribute] = value
-                else:
-                    # throw error
-                    pass
+            assert name in self.vars
+            # Checks if the attribute exists
+            if attribute in self.vars[name]:
+                self.vars[name][attribute] = value
             else:
-                # throw error
+                # throw local error
                 pass
 
+    # Gets all attributes or the given one.
     def getAttr(self, name, attribute = None):
-        if name in self.vars:
-            if attribute is None:
-                val = self.vars[name]['val']
-                type = self.vars[name]['type']
-                if val is None:
-                    return {'type': type, 'val': val}
-                if type == TokenType.INT:
-                    val = int(val)
-                elif type == TokenType.REAL:
-                    val = float(val) 
-                return {'type': type, 'val': val}
-            elif attribute in self.vars[name]:
-                if attribute is 'val':
-                    type = self.vars[name]['type']
-                    val = self.vars[name][attribute]
-                    if val is None:
-                        return None
-                    if type == TokenType.INT:
-                        val = int(val)
-                    elif type == TokenType.REAL:
-                        val = float(val) 
-                else:
-                    val = self.vars[name]['type']
-                return val
-            else:
-                # throw error
-                pass
-        else:
-            # throw error
-            pass
+        assert name in self.vars
+        # Checks if attribute has value
+        if attribute is None:
+            return {'type': self.vars[name]['type'], 'val': self.vars[name]['val']}
+        elif attribute in self.vars[name]:
+            return self.vars[name][attribute]
