@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.uaa.classes.*;
 import com.uaa.idejavafx.Main;
 import java.io.*;
+import static java.lang.Character.isDigit;
 import java.net.URL;
 import java.nio.file.*;
 import java.time.*;
@@ -291,6 +292,18 @@ public class PrimaryController implements Initializable {
         this.initLineNumberFactory(lineErrors);
     }
     
+    private static boolean isInt(String strNum) {
+        if (strNum == null) {
+            return false;
+        }
+        try {
+            int d = Integer.parseInt(strNum);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+    
     private void getOutput(String ofile, TreeView<String> treeView, String tree){
         SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
         selectionModel.select(outputTab);
@@ -301,6 +314,17 @@ public class PrimaryController implements Initializable {
             while (scanner.hasNext()) {
                 s = scanner.next();
                 errors += s + "\n";
+                String line = "";
+                int i = 0;
+                while(i < s.length() && !isDigit(s.charAt(i))) i++;
+                while(i < s.length() && isDigit(s.charAt(i))){
+                    line += s.charAt(i);
+                    i++;
+                }
+                if(isInt(line)){
+                    lineErrors.add(Integer.parseInt(line) - 1);
+                }
+                
             }
         } catch (IOException ex) { }
         if (!errors.isEmpty()) {
