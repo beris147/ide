@@ -25,6 +25,7 @@ class TokenType(enum.Enum):
     DEC = 18
     #ASSIGN
     ASSIGN = 19
+    INCDECASSIGN = 190
     #SEMICOLON
     SEMI = 20
     #PARENTHESIS

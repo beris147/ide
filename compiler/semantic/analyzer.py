@@ -100,6 +100,8 @@ class Analyzer:
                             propagate = temp.node.sdt
                         elif token.type == TokenType.ASSIGN:
                             self.assignOperation(temp.node, symtab)
+                        elif token.type == TokenType.INCDECASSIGN:
+                            self.incdecAssignOperation(temp.node, symtab)
                     elif temp.node.sdt.data in noterminales:
                         updateSDT(temp.node.sdt, propagate.type, propagate.val, propagate.lineo, token)
                     elif temp.node.sdt.data == "SELECT" or temp.node.sdt.data == "ITERATION":
@@ -141,6 +143,13 @@ class Analyzer:
         else:
             # throw error incopatible type variable
             pass
+
+    def incdecAssignOperation(self, node: CST, symtab: SymTable):
+        #a := a + 1
+        a = node.children[0]
+        self.assignOperation(node, symtab)
+        symtab.removeLine(a.sdt)
+
 
     def arithmethicOperations(self, node: CST, operation: TokenType):
         # a op b

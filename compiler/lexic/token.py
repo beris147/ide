@@ -36,6 +36,7 @@ class Token:
             TokenType.INC: lambda: TokenType(self.type).name + ": " + self.value,
             TokenType.DEC: lambda: TokenType(self.type).name + ": " + self.value,
             TokenType.ASSIGN: lambda: TokenType(self.type).name + ": " + self.value,
+            TokenType.INCDECASSIGN: lambda: TokenType(self.type).name + ": " + self.value,
             TokenType.OPENP: lambda: "PAREN: " + self.value,
             TokenType.CLOSEP: lambda: "PAREN: " + self.value,
             TokenType.OPENC: lambda: "BRACKET: " + self.value,
