@@ -7,4 +7,4 @@ class Error():
 
     def __repr__(self):
         strcol = f' col {self.col}' if self.col is not None else ''
-        return '>>>{} error at line {}{} {}\n'.format(self.type,self.lineo,strcol,self.message)
+        return '>>>{} error at line {}{}: {}'.format(self.type,self.lineo,strcol,self.message)
