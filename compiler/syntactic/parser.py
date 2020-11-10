@@ -156,13 +156,17 @@ class Parser:
         t = ATS("main")
         #first main
         first = [TokenType.MAIN]
+        firstStmtList = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        firstSentList = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID, TokenType.DO]
         self.checkInput(first, follow)
         if self.token.type in first:
             self.match(TokenType.MAIN)
             self.checkInput([TokenType.OPENC], follow)
             self.match(TokenType.OPENC)
-            t.add_child(self.statementsList(stmtListFollow))
-            t.add_child(self.sentencesList(sentListFollow))
+            if self.token.type in firstStmtList:
+                t.add_child(self.statementsList(stmtListFollow))
+            if self.token.type in firstSentList:
+                t.add_child(self.sentencesList(sentListFollow))
             self.checkInput([TokenType.CLOSEC], follow)
             self.match(TokenType.CLOSEC)
             self.checkInput(follow, first)

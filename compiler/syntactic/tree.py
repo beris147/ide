@@ -131,9 +131,6 @@ def postOrder(root: ATS, symtab: SymTable):
                 elif temp.node.sdt.data in noterminales:
                     temp.node.sdt.type = propagate.type
                     temp.node.sdt.val = propagate.val
-                elif(temp.node.sdt.data == "SENT-LIST"):
-                    for child in temp.node.children:
-                        postOrder(child, symtab)
                 ans.append(temp.node.sdt)
                 condition = len(Stack)>0 and temp.index == len(Stack[len(Stack)-1].node.children) - 1
             if len(Stack) > 0:
