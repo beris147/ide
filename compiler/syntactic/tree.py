@@ -1,5 +1,5 @@
 from enumTypes import TokenType
-import sys, os
+import sys, os, math
 sys.path.append(os.path.relpath("../lexic"))
 
 from pathlib import Path
@@ -69,8 +69,8 @@ class ATS(dict):
                 initizalizeStmtList(child, symtab)
             if(child.sdt.data == "SENT-LIST"):
                 for node in child.children:
-                    vec = postOrder(node, symtab)
-                    print(vec)
+                    postOrder(node, symtab)
+        
 
 def initizalizeStmtList(node: ATS, symtab: SymTable):
     if isinstance(node.sdt.data, Token):
@@ -82,52 +82,144 @@ def initizalizeStmtList(node: ATS, symtab: SymTable):
         child.sdt.type = node.sdt.type
         initizalizeStmtList(child, symtab)
 
-
-def postOrder(node: ATS, symtab: SymTable):
+def postOrder(root: ATS, symtab: SymTable):
     ans = []
     Stack = deque([])
     index = 0
     Pair = namedtuple("Pair", ["node", "index"])
-    while node is not None or len(Stack) > 0:
-        if node is not None: #Si es no None aun tenemos nodos a la izquierda
-            Stack.append(Pair(node, index))
+    propagate = SDT()
+
+    numeros = [TokenType.NUM, TokenType.FLOAT]
+    noterminales = ["FACTOR", "EXP", "SIMPLE-EXP", "TERM", "RELATION"]
+    arithmethicOperators = [TokenType.PLUS, TokenType.MINUS, TokenType.MULT, TokenType.DIV]
+    logicalOperators = [TokenType.BT, TokenType.LT, TokenType.BOREQ, TokenType.LOREQ, TokenType.EQ, TokenType.DIFF]
+
+    while root is not None or len(Stack) > 0:
+        if root is not None:
+            Stack.append(Pair(root, index))
             index = 0
-            node = node.children[0] if len(node.children) >= 1 else None
-        else: # Si llegamos al final de la izquierda vaciamos los que esten al nivel
+            root = root.children[0] if len(root.children) >= 1 else None
+        else:
             condition = True
             while condition:
                 temp = Stack[len(Stack)-1] 
                 Stack.pop()
-                # Los que vamos sacando son los hijos, de momento los meto a la lista para tenerlos en 
-                # el orden que van saliendo, de aqui podemos comprobar si un nodo es terminal, si llega a 
-                # ser un ID hay que buscarlo en la tabla de simbolos, si es reservado no se hace nada
-                # si es un intermedio toma los valores que tiene su primer hijo. 
-                # Los operadores hacen otras cosas
                 if isinstance(temp.node.sdt.data, Token):
-                    if temp.node.sdt.data.type == TokenType.ID:
-                        # print (temp.node.sdt.data.value)
-                        if symtab.lookup(temp.node.sdt.data.value) is not None:
-                            attrs = symtab.getAttr(temp.node.sdt.data.value)
+                    token = temp.node.sdt.data
+                    if token.type == TokenType.ID:
+                        if symtab.lookup(token.value) is not None:
+                            attrs = symtab.getAttr(token.value)
                             temp.node.sdt.type = attrs['type']
                             temp.node.sdt.val = attrs['val']
-                    elif temp.node.sdt.data.type in [TokenType.NUM, TokenType.FLOAT]:
-                        temp.node.sdt.type = TokenType.INT if temp.node.sdt.data.type == TokenType.NUM else TokenType.REAL
-                        temp.node.sdt.val = temp.node.sdt.data.value
-                    elif temp.node.sdt.data.type == TokenType.ASSIGN:
-                        if (temp.node.children[0].sdt.type == temp.node.children[1].sdt.type):
-                            # temp.node.children[0].sdt.val = temp.node.children[1].sdt.val
-                            symtab.setAttr(temp.node.children[0].sdt.data.value, "val", temp.node.children[1].sdt.val)
+                            propagate = temp.node.sdt
                         else:
-                            # throw error different types
+                            #throw error 404
                             pass
-                else:
-                    temp.node.sdt.type = temp.node.children[0].sdt.type
-                    temp.node.sdt.val = temp.node.children[0].sdt.val
-                    # print (len(temp.node.children))
-
+                    elif token.type in numeros:
+                        temp.node.sdt.type = TokenType.INT if token.type == TokenType.NUM else TokenType.REAL
+                        temp.node.sdt.val = int(token.value) if token.type is TokenType.INT else float(token.value) 
+                        propagate = temp.node.sdt
+                    elif token.type in arithmethicOperators:
+                       arithmethicOperations(temp.node, token.type)
+                       propagate = temp.node.sdt
+                    elif token.type in logicalOperators:
+                       relationalOperations(temp.node, token.type)
+                       propagate = temp.node.sdt
+                    elif token.type == TokenType.ASSIGN:
+                        assignOperation(temp.node, symtab)
+                elif temp.node.sdt.data in noterminales:
+                    temp.node.sdt.type = propagate.type
+                    temp.node.sdt.val = propagate.val
+                elif(temp.node.sdt.data == "SENT-LIST"):
+                    for child in temp.node.children:
+                        postOrder(child, symtab)
                 ans.append(temp.node.sdt)
                 condition = len(Stack)>0 and temp.index == len(Stack[len(Stack)-1].node.children) - 1
             if len(Stack) > 0:
                 index = temp.index + 1
-                node = Stack[len(Stack)-1].node.children[index]
+                root = Stack[len(Stack)-1].node.children[index]
     return ans
+
+
+def assignOperation(node: ATS, symtab: SymTable):
+    #a := b 
+    a = node.children[0]
+    b = node.children[1]
+
+    if a.sdt.val is None or b.sdt.val is None or a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR:
+        node.sdt.type = TokenType.ERROR
+        node.sdt.val = None
+        return
+
+    if a.sdt.type == b.sdt.type:
+        symtab.setAttr(a.sdt.data.value, "val", b.sdt.val)
+    elif a.sdt.type == TokenType.REAL:
+        symtab.setAttr(a.sdt.data.value, "val", b.sdt.val*1.0)
+    elif a.sdt.type == TokenType.INT:
+        symtab.setAttr(a.sdt.data.value, "val", math.floor(b.sdt.val))
+    else:
+        # throw error incopatible type variable
+        pass
+
+def arithmethicOperations(node: ATS, operation: TokenType):
+    # a op b
+    a = node.children[0]
+    b = node.children[1]
+
+    if a.sdt.val is None or b.sdt.val is None or a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR:
+        node.sdt.type = TokenType.ERROR
+        node.sdt.val = None
+        return
+
+    val = 0
+    type = a.sdt.type if a.sdt.type == b.sdt.type else TokenType.REAL if a.sdt.type == TokenType.REAL or b.sdt.type == TokenType.REAL else TokenType.INT
+    if operation == TokenType.PLUS:
+        val = a.sdt.val + b.sdt.val
+    elif operation == TokenType.MINUS:
+        val = a.sdt.val - b.sdt.val
+    elif operation == TokenType.MULT:
+        val = a.sdt.val * b.sdt.val
+    elif operation == TokenType.DIV:
+        val = a.sdt.val / b.sdt.val
+    elif operation == TokenType.MOD:
+        val = a.sdt.val % b.sdt.val
+    node.sdt.type = type
+    node.sdt.val = val
+
+def relationalOperations(node: ATS, operation: TokenType):
+    # a op b
+    a = node.children[0]
+    b = node.children[1]
+
+    incompatibles = (a.sdt.type == TokenType.BOOLEAN and b.sdt.type != TokenType.BOOLEAN) or (b.sdt.type == TokenType.BOOLEAN and a.sdt.type != TokenType.BOOLEAN)
+    if a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR or incompatibles or a.sdt.val is None or b.sdt.val is None:
+        node.sdt.type = TokenType.ERROR
+        node.sdt.val = None
+        return
+
+    booleans = a.sdt.type == TokenType.BOOLEAN
+
+    val = False
+    type = TokenType.BOOLEAN
+
+    evaluated = False
+    if operation == TokenType.EQ:
+        val = a.sdt.val is b.sdt.val
+        evaluated = True
+    elif operation == TokenType.DIFF:
+        val = a.sdt.val is not b.sdt.val
+        evaluated = True
+    if not booleans:
+        if operation == TokenType.LT:
+            val = a.sdt.val < b.sdt.val
+        elif operation == TokenType.BT:
+            val = a.sdt.val > b.sdt.val
+        elif operation == TokenType.LOREQ:
+            val = a.sdt.val <= b.sdt.val
+        elif operation == TokenType.BOREQ:
+            val = a.sdt.val >= b.sdt.val
+    elif not evaluated:
+        type = TokenType.ERROR
+        val = None
+    node.sdt.type = type
+    node.sdt.val = val

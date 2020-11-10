@@ -1,13 +1,14 @@
 class SDT:
 
-    def __init__(self, data = '') -> None:
+    def __init__(self, data = '', type = None, val = None) -> None:
         self.data = data
-        self.type = None
-        self.val = None
+        self.type = type
+        self.val = val
 
     def __repr__(self):
+        
         # Only syntactic
-        # return repr(self.data)
+        #return repr(self.data)
 
         # FIXME: Debug for semantic
         return str(dict(type=self.type, val=self.val, token=repr(self.data)))

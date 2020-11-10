@@ -1,4 +1,5 @@
 from semantic.node import SDT
+from enumTypes import TokenType
 
 class SymTable(dict):
     def __init__(self) -> None:
@@ -34,9 +35,28 @@ class SymTable(dict):
     def getAttr(self, name, attribute = None):
         if name in self.vars:
             if attribute is None:
-                return {'type': self.vars[name]['type'], 'val': self.vars[name]['val']}
+                val = self.vars[name]['val']
+                type = self.vars[name]['type']
+                if val is None:
+                    return {'type': type, 'val': val}
+                if type == TokenType.INT:
+                    val = int(val)
+                elif type == TokenType.REAL:
+                    val = float(val) 
+                return {'type': type, 'val': val}
             elif attribute in self.vars[name]:
-                return self.vars[name][attribute]
+                if attribute is 'val':
+                    type = self.vars[name]['type']
+                    val = self.vars[name][attribute]
+                    if val is None:
+                        return None
+                    if type == TokenType.INT:
+                        val = int(val)
+                    elif type == TokenType.REAL:
+                        val = float(val) 
+                else:
+                    val = self.vars[name]['type']
+                return val
             else:
                 # throw error
                 pass
