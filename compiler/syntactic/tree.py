@@ -2,12 +2,10 @@ import sys, os, math
 sys.path.append(os.path.relpath("../lexic"))
 
 from pathlib import Path
-from collections import deque 
-from collections import namedtuple
+from collections import deque
 from lexic.token import Token
 from semantic.node import SDT
 from semantic.symtab import SymTable
-from enumTypes import TokenType
 from semantic.analyzer import initizalizeStmtList, postOrder
 
 def printSpaces(Stack):

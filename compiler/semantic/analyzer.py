@@ -1,11 +1,9 @@
 import math
 
+from collections import deque, namedtuple
 from enumTypes import TokenType
 from .symtab import SymTable
 from lexic.token import Token
-from typing import Callable
-from collections import deque 
-from collections import namedtuple
 from lexic.token import Token
 from semantic.node import SDT
 
@@ -22,7 +20,10 @@ def initizalizeStmtList(node, symtab: SymTable):
         if node.sdt.data.type in [TokenType.INT, TokenType.REAL]:
             node.sdt.type = node.sdt.data.type
         elif node.sdt.data.type == TokenType.ID:
-            symtab.insert(node.sdt)
+            # TODO: throw error -> redeclarate
+            if symtab.insert(node.sdt) is False:
+                node.sdt.type = TokenType.ERROR
+
     for child in node.children:
         child.sdt.type = node.sdt.type
         initizalizeStmtList(child, symtab)
@@ -53,25 +54,25 @@ def postOrder(root, symtab: SymTable):
                 if isinstance(temp.node.sdt.data, Token):
                     token = temp.node.sdt.data
                     if token.type == TokenType.ID:
-                        if symtab.lookup(token.value) is not None:
-                            symtab.insert(temp.node.sdt)
+                        if symtab.lookup(token.value):
+                            symtab.addLine(temp.node.sdt)
                             attrs = symtab.getAttr(token.value)
                             temp.node.sdt.type = attrs['type']
                             temp.node.sdt.val = attrs['val']
                             propagate = temp.node.sdt
                         else:
-                            #throw error 404
+                            # TODO: throw error 404
                             pass
                     elif token.type in numeros:
                         temp.node.sdt.type = TokenType.INT if token.type == TokenType.NUM else TokenType.REAL
-                        temp.node.sdt.val = int(token.value) if token.type == TokenType.INT else float(token.value) 
+                        temp.node.sdt.val = int(token.value) if token.type == TokenType.NUM else float(token.value)
                         propagate = temp.node.sdt
                     elif token.type in arithmethicOperators:
-                       arithmethicOperations(temp.node, token.type)
-                       propagate = temp.node.sdt
+                        arithmethicOperations(temp.node, token.type)
+                        propagate = temp.node.sdt
                     elif token.type in logicalOperators:
-                       relationalOperations(temp.node, token.type)
-                       propagate = temp.node.sdt
+                        relationalOperations(temp.node, token.type)
+                        propagate = temp.node.sdt
                     elif token.type == TokenType.ASSIGN:
                         assignOperation(temp.node, symtab)
                 elif temp.node.sdt.data in noterminales:
