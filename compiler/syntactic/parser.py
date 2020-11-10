@@ -95,7 +95,7 @@ def get_mock_exp(node, a, b):
     return exp
 
 def inc_dec(last, inc):
-    assign = CST(Token(TokenType.ASSIGN, ":=", last.lineo))
+    assign = CST(Token(TokenType.INCDECASSIGN, ":=", last.lineo))
     inc_dec = CST(Token(TokenType.PLUS, "+", last.lineo)) if inc == True else CST(Token(TokenType.MINUS, "-", last.lineo))
     one = Token(TokenType.NUM, "1", last.lineo)
     assign.add_child(CST(last))

@@ -32,6 +32,13 @@ class SymTable(dict):
         # Add line
         self.vars[name]['lines'].append(sdt.data.lineo)
 
+    # Remove the line of present var
+    def removeLine(self, sdt: SDT):
+        name = sdt.data.value
+        assert name in self.vars
+        # Add line
+        self.vars[name]['lines'].remove(sdt.data.lineo)
+
     # Sets the value of a var's attribute
     def setAttr(self, name, attribute, value):
         if self.update:
