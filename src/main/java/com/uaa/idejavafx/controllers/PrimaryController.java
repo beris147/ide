@@ -420,32 +420,39 @@ public class PrimaryController implements Initializable {
     }
     
     @FXML
-    private void runLexical(){
+    private boolean runLexical(){
         this.clean();
         this.prepare("Compiling lexical...", "", this.lexicalTab);
         this.lexOutput();
+        return true;
     }
     
     @FXML
-    private void runSyntactic(){
-        this.runLexical();
-        if(this.compilationErrors()) {
-            this.cannotCompile("syntatic", "lexical");
-            return;
+    private boolean runSyntactic(){
+        if(this.runLexical()){
+            if(this.compilationErrors()) {
+                this.cannotCompile("syntatic", "lexical");
+                return false;
+            }
+            this.prepare("\nCompiling syntactic...", "-p", this.syntacticTab);
+            this.getOutput("syntactic.o", this.syntacticTree, "tree.json");
+            return true;
         }
-        this.prepare("\nCompiling syntactic...", "-p", this.syntacticTab);
-        this.getOutput("syntactic.o", this.syntacticTree, "tree.json");
+        return false;
     }
     
     @FXML
-    private void runSemantic(){
-        this.runSyntactic();
-        if(this.compilationErrors()) {
-            this.cannotCompile("semantic", "syntatic");
-            return;
+    private boolean runSemantic(){
+        if(this.runSyntactic()){
+            if(this.compilationErrors()) {
+                this.cannotCompile("semantic", "syntatic");
+                return false;
+            }
+            this.prepare("\nCompiling semantic...", "-p -a", this.semanticTab);
+            this.getOutput("semantic.o", this.semanticTree, null);
+            return true;
         }
-        this.prepare("\nCompiling semantic...", "-p -a", this.semanticTab);
-        this.getOutput("semantic.o", this.semanticTree, null);
+        return false;
     }
     
     private void prepare(String message, String extraParams, Tab tab){
