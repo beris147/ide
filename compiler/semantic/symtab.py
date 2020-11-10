@@ -6,12 +6,16 @@ class SymTable(dict):
         super().__init__()
         self.__dict__ = self
         self.vars = {}
+        self.update = True
 
     def lookup(self, name: str):
         if name in self.vars:
             return self.vars[name]
         else:
             return None
+
+    def set_update(self, val: bool):
+        self.update = val
 
     def insert(self, sdt: SDT):
         name = sdt.data.value
@@ -22,15 +26,16 @@ class SymTable(dict):
             self.vars[name] = {'type': sdt.type, 'lines': [sdt.data.lineo], 'val': None}
     
     def setAttr(self, name, attribute, value):
-        if name in self.vars:
-            if attribute in self.vars[name]:
-                self.vars[name][attribute] = value
+        if self.update:
+            if name in self.vars:
+                if attribute in self.vars[name]:
+                    self.vars[name][attribute] = value
+                else:
+                    # throw error
+                    pass
             else:
                 # throw error
                 pass
-        else:
-            # throw error
-            pass
 
     def getAttr(self, name, attribute = None):
         if name in self.vars:

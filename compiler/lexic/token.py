@@ -1,6 +1,6 @@
 import sys, os
 sys.path.append(os.path.relpath("../enumTypes"))
-
+from error import Error
 from enumTypes import TokenType, STATE, reservedWords, uniqueCharacter, startSimbol
 class Token:
     type = 0
