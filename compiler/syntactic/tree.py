@@ -1,4 +1,3 @@
-from enumTypes import TokenType
 import sys, os, math
 sys.path.append(os.path.relpath("../lexic"))
 
@@ -8,6 +7,7 @@ from collections import namedtuple
 from lexic.token import Token
 from semantic.node import SDT
 from semantic.symtab import SymTable
+from enumTypes import TokenType
 
 def printSpaces(Stack):
     print("", end='')
@@ -69,7 +69,8 @@ class ATS(dict):
                 initizalizeStmtList(child, symtab)
             if(child.sdt.data == "SENT-LIST"):
                 for node in child.children:
-                    postOrder(node, symtab)
+                    vec = postOrder(node, symtab)
+                    print(vec)
         
 
 def initizalizeStmtList(node: ATS, symtab: SymTable):
@@ -146,13 +147,15 @@ def assignOperation(node: ATS, symtab: SymTable):
     a = node.children[0]
     b = node.children[1]
 
-    if a.sdt.val is None or b.sdt.val is None or a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR:
+    if b.sdt.val is None or a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR:
         node.sdt.type = TokenType.ERROR
         node.sdt.val = None
+        #throw error
         return
 
     if a.sdt.type == b.sdt.type:
-        symtab.setAttr(a.sdt.data.value, "val", b.sdt.val)
+        val = math.floor(b.sdt.val) if a.sdt.type == TokenType.INT else b.sdt.val
+        symtab.setAttr(a.sdt.data.value, "val", val)
     elif a.sdt.type == TokenType.REAL:
         symtab.setAttr(a.sdt.data.value, "val", b.sdt.val*1.0)
     elif a.sdt.type == TokenType.INT:
@@ -169,6 +172,7 @@ def arithmethicOperations(node: ATS, operation: TokenType):
     if a.sdt.val is None or b.sdt.val is None or a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR:
         node.sdt.type = TokenType.ERROR
         node.sdt.val = None
+        #throw error
         return
 
     val = 0
@@ -195,6 +199,7 @@ def relationalOperations(node: ATS, operation: TokenType):
     if a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR or incompatibles or a.sdt.val is None or b.sdt.val is None:
         node.sdt.type = TokenType.ERROR
         node.sdt.val = None
+        #throw error
         return
 
     booleans = a.sdt.type == TokenType.BOOLEAN
