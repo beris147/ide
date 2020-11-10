@@ -8,7 +8,7 @@ from collections import deque
 from collections import namedtuple
 from lexic.token import Token
 from semantic.node import SDT
-
+from error import Error
 
 class Analyzer:
 
@@ -56,16 +56,15 @@ def postOrder(root, symtab: SymTable):
                         if symtab.lookup(token.value) is not None:
                             symtab.insert(temp.node.sdt)
                             attrs = symtab.getAttr(token.value)
-                            temp.node.sdt.type = attrs['type']
-                            temp.node.sdt.val = attrs['val']
-                            propagate = temp.node.sdt
+                            updateSDT(propagate, attrs['type'], attrs['val'], token.lineo)
+                            updateSDT(temp.node.sdt, propagate.type, propagate.val, propagate.lineo)
                         else:
-                            #throw error 404
-                            pass
+                            semanticError(f'{token} is not declared', token.lineo)
                     elif token.type in numeros:
-                        temp.node.sdt.type = TokenType.INT if token.type == TokenType.NUM else TokenType.REAL
-                        temp.node.sdt.val = int(token.value) if token.type == TokenType.INT else float(token.value) 
-                        propagate = temp.node.sdt
+                        propagate.type = TokenType.INT if token.type == TokenType.NUM else TokenType.REAL
+                        propagate.val = int(token.value) if token.type == TokenType.INT else float(token.value) 
+                        propagate.lineo = token.lineo
+                        updateSDT(temp.node.sdt, propagate.type, propagate.val, propagate.lineo)
                     elif token.type in arithmethicOperators:
                        arithmethicOperations(temp.node, token.type)
                        propagate = temp.node.sdt
@@ -75,8 +74,7 @@ def postOrder(root, symtab: SymTable):
                     elif token.type == TokenType.ASSIGN:
                         assignOperation(temp.node, symtab)
                 elif temp.node.sdt.data in noterminales:
-                    temp.node.sdt.type = propagate.type
-                    temp.node.sdt.val = propagate.val
+                    updateSDT(temp.node.sdt, propagate.type, propagate.val, propagate.lineo)
                 elif temp.node.sdt.data == "SELECT" or temp.node.sdt.data == "ITERATION":
                     checkBooleanExp(temp.node, 1)
                 elif temp.node.sdt.data == "REPEAT":
@@ -88,12 +86,16 @@ def postOrder(root, symtab: SymTable):
             else:
                 symtab.set_update(True)
 
+def semanticError(message: str, lineo: int, traceErrors = True) -> None:
+    error = Error('Semantic', message, lineo)
+    if traceErrors:
+        print(error)
+
 def checkBooleanExp(node, pos: int):
     exp = node.children[pos]
     if exp.sdt.type == TokenType.ERROR or exp.sdt.type != TokenType.BOOLEAN:
-        #throw error not a boolean expresion in condition if
-        node.sdt.type = TokenType.ERROR
-        pass
+        semanticError('expression is not boolean', exp.sdt.lineo)
+        updateSDT(node.sdt, TokenType.ERROR)
 
 def assignOperation(node, symtab: SymTable):
     #a := b 
@@ -101,9 +103,11 @@ def assignOperation(node, symtab: SymTable):
     b = node.children[1]
 
     if b.sdt.val is None or a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR:
-        node.sdt.type = TokenType.ERROR
-        node.sdt.val = None
-        #throw error
+        if b.sdt.val is None: #TODO: find the variable
+            semanticError('a variable is not initialized', a.sdt.lineo)
+        else:
+            semanticError('error in expression', a.sdt.lineo)
+        updateSDT(node.sdt, TokenType.ERROR, None)
         return
 
     if a.sdt.type == b.sdt.type:
@@ -123,9 +127,9 @@ def arithmethicOperations(node, operation: TokenType):
     b = node.children[1]
 
     if a.sdt.val is None or b.sdt.val is None or a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR:
-        node.sdt.type = TokenType.ERROR
-        node.sdt.val = None
-        #throw error
+        if a.sdt.val is not None and b.sdt.val is not None:
+            semanticError('error in expression', a.sdt.lineo)
+        updateSDT(node.sdt, TokenType.ERROR, None)
         return
 
     val = 0
@@ -140,8 +144,7 @@ def arithmethicOperations(node, operation: TokenType):
         val = a.sdt.val / b.sdt.val
     elif operation == TokenType.MOD:
         val = a.sdt.val % b.sdt.val
-    node.sdt.type = type
-    node.sdt.val = val
+    updateSDT(node.sdt, type, val, a.sdt.lineo)
 
 def relationalOperations(node, operation: TokenType):
     # a op b
@@ -150,9 +153,11 @@ def relationalOperations(node, operation: TokenType):
 
     incompatibles = (a.sdt.type == TokenType.BOOLEAN and b.sdt.type != TokenType.BOOLEAN) or (b.sdt.type == TokenType.BOOLEAN and a.sdt.type != TokenType.BOOLEAN)
     if a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR or incompatibles or a.sdt.val is None or b.sdt.val is None:
-        node.sdt.type = TokenType.ERROR
-        node.sdt.val = None
-        #throw error
+        if incompatibles: 
+            semanticError(f'tokens {a} and {b} are not compatibles for a boolean comparation', a.sdt.lineo)
+        if a.sdt.val is not None and b.sdt.val is not None:
+            semanticError('error in expression', a.sdt.lineo)
+        updateSDT(node.sdt, TokenType.ERROR, None)
         return
 
     booleans = a.sdt.type == TokenType.BOOLEAN
@@ -179,6 +184,9 @@ def relationalOperations(node, operation: TokenType):
     elif not evaluated:
         type = TokenType.ERROR
         val = None
-    node.sdt.type = type
-    node.sdt.val = val
+    updateSDT(node.sdt, type, val, a.sdt.lineo)
 
+def updateSDT(sdt: SDT, type = None, val = None, lineo = None) -> SDT:
+    sdt.type = type
+    sdt.val = val
+    sdt.lineo = lineo
