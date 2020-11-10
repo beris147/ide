@@ -20,6 +20,7 @@ parser.add_argument('-p', '--parser', type=str2bool, nargs='?', const=True, defa
 parser.add_argument('-a', '--analyze', type=str2bool, nargs='?', const=True, default=False, help='false for an only syntactic compiler')
 parser.add_argument('-S', '--traceScan', type=str2bool, nargs='?', const=True, default=False, help='print the scan tokens')
 parser.add_argument('-P', '--traceParser', type=str2bool, nargs='?', const=True, default=False, help='print the syntactic tree')
+parser.add_argument('-A', '--traceAnalysis', type=str2bool, nargs='?', const=True, default=False, help='print the analysis process')
 requiredNamed = parser.add_argument_group('required named arguments')
 requiredNamed.add_argument('-d', '--dir', help='main file directory', required=True)
 requiredNamed.add_argument('-f', '--file', help='main file name', required=True)
@@ -46,17 +47,17 @@ if args.parser == False:
 else:
     parser = Parser(lex, dir, args.traceParser)
     tree = parser.parse()
-
-    # Semantic
-    analyzer = Analyzer(tree)
-    #print(analyzer.tree)
-    #print(' ')
-    #print (analyzer.symtab)
+    if args.analyze:
+        analyzer = Analyzer(tree, dir, args.traceAnalysis)
+        analyzer.analyze()
 
 """
 lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)
 parser = Parser(lex, "/home/beristain/Documents/uaa/compis", True)
 tree = parser.parse()
 analyzer = Analyzer(tree)
+analyzer.traverse()
+#print(analyzer.tree)
+#print (analyzer.symtab)
 #"""
 print("build: finshed")

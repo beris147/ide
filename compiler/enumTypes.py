@@ -56,6 +56,9 @@ class TokenType(enum.Enum):
     # FIXME: Debug for semantic
     def __repr__(self):
         return str(self.name)
+    
+    def __str__(self):
+        return str(self.name)
 
 class STATE(enum.Enum):
     START = 0

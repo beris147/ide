@@ -1,65 +1,35 @@
 package com.uaa.idejavafx.controllers;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.uaa.classes.FileHelper;
-import com.uaa.classes.LineError;
+import com.google.gson.*;
+import com.uaa.classes.*;
 import com.uaa.idejavafx.Main;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.IntFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javafx.concurrent.Task;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
+import java.nio.file.*;
+import java.time.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.regex.*;
+import javafx.concurrent.*;
+import javafx.fxml.*;
+import javafx.geometry.*;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.SingleSelectionModel;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.*;
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.fxmisc.richtext.model.TwoDimensional;
+import org.fxmisc.richtext.model.*;
 import org.reactfx.Subscription;
 
 public class PrimaryController implements Initializable {
     @FXML
     private CodeArea codeText, outputArea, errorArea, lexicalArea;
     @FXML
-    private TreeView<String> syntacticTree;
+    private TreeView<String> syntacticTree, semanticTree;
     @FXML
-    private Tab tabTitle, outputTab, errorTab, lexicalTab, syntacticTab;
+    private Tab tabTitle, outputTab, errorTab, lexicalTab, syntacticTab, semanticTab;
     @FXML
     private Label currentLabel, totalLabel, infoLabel;
     @FXML
@@ -281,6 +251,14 @@ public class PrimaryController implements Initializable {
         Main.setCompilerDir();
     }
     
+    private boolean compilationErrors() {
+        return !errorArea.getText().equals("");
+    }
+    
+    private void cannotCompile(String unable, String cause){
+        this.errorArea.appendText("Cannot compile "+unable+", "+cause+ " errors\n"); 
+    }
+    
     private void lexOutput(){
         SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
         selectionModel.select(outputTab);
@@ -293,7 +271,7 @@ public class PrimaryController implements Initializable {
                 if (s.contains("ERROR")) {
                     Integer l = Integer.parseInt(lastLine.split(" ")[0]);
                     Integer c = Integer.parseInt(lastLine.split(" ")[1]);
-                    errors += s.replace("<ERROR: ", "Error con \"").replace(">", "\"") + " línea: " + l + " columna: " + c + "\n";
+                    errors += s.replace(">", "\"").replace("<ERROR: ", ">>>Error with \"") + " line: " + l + " col: " + c + "\n";
                     lineErrors.add(l - 1);
                 } else if (s.contains("<")) {
                     output += lastLine + "\n" + s + "\n";
@@ -313,13 +291,12 @@ public class PrimaryController implements Initializable {
         this.initLineNumberFactory(lineErrors);
     }
     
-    private void syntaxOutput(){
-        //aqui tambien hay que abrir el json y cargar el arbol al tree view
+    private void getOutput(String ofile, TreeView<String> treeView, String tree){
         SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
         selectionModel.select(outputTab);
         String s, errors = "";
         List<Integer> lineErrors = new ArrayList<>();
-        Path syntaxo = Paths.get(this.fileHelper.getFile().getParent() + "/compilador/syntactic.o").toAbsolutePath();
+        Path syntaxo = Paths.get(this.fileHelper.getFile().getParent() + "/compilador/"+ofile).toAbsolutePath();
         try (Scanner scanner = new Scanner(syntaxo).useDelimiter("\n")) {
             while (scanner.hasNext()) {
                 s = scanner.next();
@@ -332,16 +309,13 @@ public class PrimaryController implements Initializable {
             selectionModel.select(outputTab);
             outputArea.appendText("\nbuild: ok");
         }
-
-        // Read json file
-        JsonParser parser = new JsonParser();
-        try {
-            JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/tree.json"));
-            // Set tree root
-            this.syntacticTree.setRoot(createTree(json, null));
-
-        } catch(FileNotFoundException ex) {}
-
+        if(tree != null){
+            JsonParser parser = new JsonParser();
+            try {
+                JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/"+tree));
+                treeView.setRoot(createTree(json, null));
+            } catch(FileNotFoundException ex) {}
+        }
         errorArea.appendText(errors);
         this.initLineNumberFactory(lineErrors);
     }
@@ -424,17 +398,30 @@ public class PrimaryController implements Initializable {
     @FXML
     private void runLexical(){
         this.clean();
-        this.prepare("Compilando lexico...", "", this.lexicalTab);
+        this.prepare("Compiling lexical...", "", this.lexicalTab);
         this.lexOutput();
     }
     
     @FXML
     private void runSyntactic(){
-        //this.clean();
         this.runLexical();
-        this.prepare("\nCompilando sintactico...", "-p", this.syntacticTab);
-        //this.lexOutput();
-        this.syntaxOutput();
+        if(this.compilationErrors()) {
+            this.cannotCompile("syntatic", "lexical");
+            return;
+        }
+        this.prepare("\nCompiling syntactic...", "-p", this.syntacticTab);
+        this.getOutput("syntactic.o", this.syntacticTree, "tree.json");
+    }
+    
+    @FXML
+    private void runSemantic(){
+        this.runSyntactic();
+        if(this.compilationErrors()) {
+            this.cannotCompile("semantic", "syntatic");
+            return;
+        }
+        this.prepare("\nCompiling semantic...", "-p -a", this.semanticTab);
+        this.getOutput("semantic.o", this.semanticTree, null);
     }
     
     private void prepare(String message, String extraParams, Tab tab){

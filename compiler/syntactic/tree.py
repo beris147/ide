@@ -6,7 +6,6 @@ from collections import deque
 from lexic.token import Token
 from semantic.node import SDT
 from semantic.symtab import SymTable
-from semantic.analyzer import initizalizeStmtList, postOrder
 
 def printSpaces(Stack):
     print("", end='')
@@ -60,11 +59,3 @@ class CST(dict):
                 printSpaces(Stack)
                 print("}")
                 Stack.pop()
-
-    def traverse(self, symtab: SymTable) -> None:
-        for child in self.children:
-            if(child.sdt.data == "STMT-LIST"):
-                initizalizeStmtList(child, symtab)
-            if(child.sdt.data == "SENT-LIST"):
-                for node in child.children:
-                    postOrder(node, symtab)

@@ -120,6 +120,7 @@ class Parser:
             tree.printPreOrder()
         if self.token.type != TokenType.EOF:
             self.syntaxError("Code ends before file", self.lex.lineo)
+        self.output.close()
         return tree
 
     def getToken(self):
@@ -130,7 +131,7 @@ class Parser:
         if self.lastError != lineo:
             self.lastError = lineo
             error = Error('Syntax', msg, lineo)
-            self.output.write(repr(error))
+            self.output.write(repr(error) + '\n')
             if self.traceParser:
                 print(error)
         
