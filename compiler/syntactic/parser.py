@@ -3,9 +3,10 @@ sys.path.append(os.path.relpath("../enumTypes"))
 sys.path.append(os.path.relpath("../lexic"))
 
 from pathlib import Path 
-from .tree import ATS
+from .tree import CST
 from enumTypes import TokenType
 from lexic.token import Token
+from error import Error
 
 #program follow { $ }
 programFollow = [TokenType.EOF]
@@ -43,7 +44,7 @@ assignFollow = stmtListFollow
 repeatFollow = stmtListFollow
 
 #common operators follow  { (, num, id }
-operators = [TokenType.OPENP, TokenType.NUM, TokenType.REAL, TokenType.ID]
+operators = [TokenType.OPENP, TokenType.NUM, TokenType.FLOAT, TokenType.ID]
 
 #exp follow {  ),  ; }
 expFollow = [TokenType.CLOSEP, TokenType.SEMI]
@@ -78,33 +79,28 @@ factorFollow = [
 
 
 def get_mock_term(value):
-    term = ATS("TERM")
-    fact = ATS("FACTOR")
-    fact.add_child(ATS(value))
+    term = CST("TERM")
+    fact = CST("FACTOR")
+    fact.add_child(CST(value))
     term.add_child(fact)
     return term
 
 def get_mock_exp(node, a, b):
-    simple = ATS("SIMPLE-EXP")
+    simple = CST("SIMPLE-EXP")
     node.add_child(get_mock_term(a))
     node.add_child(get_mock_term(b))
     simple.add_child(node)
-    exp = ATS("EXP")
+    exp = CST("EXP")
     exp.add_child(simple)
     return exp
 
 def inc_dec(last, inc):
-    assign = ATS(Token(TokenType.ASSIGN, ":=", last.lineo))
-    inc_dec = ATS(Token(TokenType.PLUS, "+", last.lineo)) if inc == True else ATS(Token(TokenType.MINUS, "-", last.lineo))
+    assign = CST(Token(TokenType.INCDECASSIGN, ":=", last.lineo))
+    inc_dec = CST(Token(TokenType.PLUS, "+", last.lineo)) if inc == True else CST(Token(TokenType.MINUS, "-", last.lineo))
     one = Token(TokenType.NUM, "1", last.lineo)
-    assign.add_child(ATS(last))
+    assign.add_child(CST(last))
     assign.add_child(get_mock_exp(inc_dec, last, one))
     return assign
-
-class Error:
-    def __init__(self, message = "", lineo = 0):
-        self.message = message
-        self.lineo = lineo
 
 class Parser:
     def __init__(self, lex, directory, traceParser = False):
@@ -119,11 +115,12 @@ class Parser:
     def parse(self):
         self.token = self.lex.getToken()
         tree = self.program(programFollow)
-        tree.build(self.directory)
+        # tree.build(self.directory)
         if self.traceParser:
             tree.printPreOrder()
         if self.token.type != TokenType.EOF:
             self.syntaxError("Code ends before file", self.lex.lineo)
+        self.output.close()
         return tree
 
     def getToken(self):
@@ -133,10 +130,10 @@ class Parser:
     def syntaxError(self, msg, lineo):
         if self.lastError != lineo:
             self.lastError = lineo
-            out = f'>>>Syntaxt error at line {lineo} {msg}'
-            self.output.write(out + "\n")
+            error = Error('Syntax', msg, lineo)
+            self.output.write(repr(error) + '\n')
             if self.traceParser:
-                print(out)
+                print(error)
         
 
     def match(self, expected, parent=None, child=None):
@@ -145,7 +142,7 @@ class Parser:
             self.getToken()
             if parent is not None:
                 if child is None:
-                    parent.add_child(ATS(self.last))
+                    parent.add_child(CST(self.last))
                 else:
                     parent.add_child(child)
         else:
@@ -153,16 +150,20 @@ class Parser:
 
     # programa → main '{' lista-declaración lista-sentencias '}' $ 
     def program(self, follow):
-        t = ATS("program")
+        t = CST("main")
         #first main
         first = [TokenType.MAIN]
+        firstStmtList = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
+        firstSentList = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID, TokenType.DO]
         self.checkInput(first, follow)
         if self.token.type in first:
-            self.match(TokenType.MAIN, t)
+            self.match(TokenType.MAIN)
             self.checkInput([TokenType.OPENC], follow)
             self.match(TokenType.OPENC)
-            t.add_child(self.statementsList(stmtListFollow))
-            t.add_child(self.sentencesList(sentListFollow))
+            if self.token.type in firstStmtList:
+                t.add_child(self.statementsList(stmtListFollow))
+            if self.token.type in firstSentList:
+                t.add_child(self.sentencesList(sentListFollow))
             self.checkInput([TokenType.CLOSEC], follow)
             self.match(TokenType.CLOSEC)
             self.checkInput(follow, first)
@@ -170,7 +171,7 @@ class Parser:
 
     # stmt-list→ { stmt; }
     def statementsList(self, follow):
-        t = ATS("STMT-LIST")
+        t = CST("STMT-LIST")
         #first { int, float, bool , e}
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
@@ -183,7 +184,7 @@ class Parser:
 
     # stmt → type var-list
     def statement(self, follow):
-        t = ATS("STMT")
+        t = CST("STMT")
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -194,11 +195,11 @@ class Parser:
 
     # type → int | float | bool
     def varType(self, follow):
-        t = ATS("TYPE")
+        t = CST("TYPE")
         first = [TokenType.INT, TokenType.REAL, TokenType.BOOLEAN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            t = ATS(self.token)
+            t = CST(self.token)
             if self.token.type == TokenType.INT:
                 self.match(TokenType.INT)
             elif self.token.type == TokenType.REAL:
@@ -212,7 +213,7 @@ class Parser:
 
     # vars-list → { identificador, } identificador
     def varsList(self, follow):
-        t = ATS("VAR-LIST")
+        t = CST("VAR-LIST")
         first = [TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -225,7 +226,7 @@ class Parser:
 
     # sent-list → { sent }
     def sentencesList(self, follow):
-        t = ATS("SENT-LIST")
+        t = CST("SENT-LIST")
         #first {if, while, cin, cout, “{”, id, e}
         first = [TokenType.IF, TokenType.WHILE, TokenType.CIN, TokenType.COUT, TokenType.OPENC, TokenType.ID, TokenType.DO]
         self.checkInput(first, follow)
@@ -237,7 +238,7 @@ class Parser:
 
     # sent → select (if) | iteration (while) | sent-cin | sent-cout | block ( { ) | assign (id) 
     def sentence(self, follow):
-        t = ATS("SENT")
+        t = CST("SENT")
         #first {if, while, cin, cout, “{”, id}
         first = [
             TokenType.IF, TokenType.WHILE, 
@@ -266,7 +267,7 @@ class Parser:
     
     # repeat → do block until ( exp );
     def repeat(self, follow):
-        t = ATS("REPEAT")
+        t = CST("REPEAT")
         first = [TokenType.DO]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -285,7 +286,7 @@ class Parser:
 
     # iteration → while ( exp )  block
     def iteration(self, follow):
-        t = ATS("ITERATION")
+        t = CST("ITERATION")
         first = [TokenType.WHILE]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -299,14 +300,14 @@ class Parser:
 
     # assign → id := exp ;  
     def assign(self, follow):
-        t = ATS("SENT-ASSIGN")
+        t = CST("SENT-ASSIGN")
         first = [TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
-            id = ATS(self.token)
+            id = CST(self.token)
             self.match(TokenType.ID)
             if self.token.type == TokenType.ASSIGN:
-                parent = ATS(self.token)
+                parent = CST(self.token)
                 self.match(TokenType.ASSIGN)
                 parent.add_child(id)
                 parent.add_child(self.exp(expFollow))
@@ -325,11 +326,11 @@ class Parser:
 
     # sent-cin → cin id ;
     def sent_cin(self, follow):
-        t = ATS("SENT-CIN")
+        t = CST("SENT-CIN")
         first = [TokenType.CIN]
         self.checkInput(first, follow)
         if self.token.type in first:
-            cin = ATS(self.token)
+            cin = CST(self.token)
             self.match(TokenType.CIN)
             self.match(TokenType.ID, cin)
             t.add_child(cin)
@@ -339,11 +340,11 @@ class Parser:
     
     # sent-cout → cout exp ;
     def sent_cout(self, follow):
-        t = ATS("SENT-COUT")
+        t = CST("SENT-COUT")
         first = [TokenType.COUT]
         self.checkInput(first, follow)
         if self.token.type in first:
-            cout = ATS(self.token)
+            cout = CST(self.token)
             self.match(TokenType.COUT)
             exp = self.exp(expFollow)
             cout.add_child(exp)
@@ -354,7 +355,7 @@ class Parser:
 
     #  select → if ( exp ) then block [else block] end
     def select(self, follow):
-        t = ATS("SELECT")
+        t = CST("SELECT")
         first = [TokenType.IF]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -379,7 +380,7 @@ class Parser:
 
     # block → “{“ sent-list “ }”
     def block(self, follow):
-        t = ATS("BLOCK")
+        t = CST("BLOCK")
         first = [TokenType.OPENC]
         self.checkInput(first, follow)
         if self.token.type in first:
@@ -391,16 +392,16 @@ class Parser:
 
     #exp → exp-simple [relación exp-simple]
     def exp(self, follow):
-        t = ATS("EXP")
+        t = CST("EXP")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM, TokenType.REAL, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM, TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             parent = self.simple_exp(simpleExpFollow)
             options = [TokenType.LOREQ, TokenType.LT, TokenType.BT, TokenType.BOREQ, TokenType.EQ, TokenType.DIFF]
             if self.token.type in options:
                 aux = parent
-                parent = ATS("RELATION")
+                parent = CST("RELATION")
                 child = self.relation(relationFollow)
                 child.add_child(aux)
                 child.add_child(self.simple_exp(simpleExpFollow))
@@ -411,13 +412,13 @@ class Parser:
 
     #relacion → <= | < | > | >= | ==| !=
     def relation(self, follow):
-        t = ATS("RELATION")
+        t = CST("RELATION")
         #first { <= , < , > , >= , = , != }
         first = [TokenType.LOREQ, TokenType.LT, TokenType.BT, TokenType.BOREQ, TokenType.EQ, TokenType.DIFF]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type in first:
-                t = ATS(self.token)
+                t = CST(self.token)
                 self.match(self.token.type)
             else:
                 self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
@@ -426,9 +427,9 @@ class Parser:
 
     # exp-simple → term {suma-op term}
     def simple_exp(self, follow):
-        t = ATS("SIMPLE-EXP")
+        t = CST("SIMPLE-EXP")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             parent = self.term(termFollow)
@@ -448,14 +449,14 @@ class Parser:
 
     # suma-op → + | - | ++ | --
     def add_op(self, follow):
-        t = ATS()
+        t = CST()
         #first { +, -, ++, - - }
         first = [TokenType.PLUS, TokenType.MINUS, TokenType.INC, TokenType.DEC]
         self.checkInput(first, follow)
         if self.token.type in first:
             options = [TokenType.PLUS, TokenType.MINUS]
             if self.token.type in options:
-                t = ATS(self.token)
+                t = CST(self.token)
                 self.match(self.token.type)
             elif self.token.type == TokenType.INC: #change this for a := a + 1 FALTA
                 t = inc_dec(self.last, True)
@@ -468,9 +469,9 @@ class Parser:
 
     # term → factor {mult-op factor}
     def term(self, follow):
-        t = ATS("TERM")
+        t = CST("TERM")
         #first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             parent = self.factor(factorFollow)
@@ -485,13 +486,13 @@ class Parser:
 
     # mult-op → * | / |%
     def mult_op(self, follow):
-        t = ATS("MULT-OP")
+        t = CST("MULT-OP")
         # first { *, /, % }
         first = [TokenType.MULT, TokenType.DIV, TokenType.MOD]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type in first:
-                t = ATS(self.token)
+                t = CST(self.token)
                 self.match(self.token.type)
             else:
                 self.syntaxError(f'unexpected token {self.token}', self.lex.lineo)
@@ -500,16 +501,16 @@ class Parser:
 
     # factor → ( exp ) | numero | id 
     def factor(self, follow):
-        t = ATS("FACTOR")
+        t = CST("FACTOR")
         # first { (, num, id }
-        first = [TokenType.OPENP, TokenType.NUM,  TokenType.REAL, TokenType.ID]
+        first = [TokenType.OPENP, TokenType.NUM,  TokenType.FLOAT, TokenType.ID]
         self.checkInput(first, follow)
         if self.token.type in first:
             if self.token.type == TokenType.OPENP:
                 self.match(TokenType.OPENP)
                 t.add_child(self.exp(expFollow))
                 self.match(TokenType.CLOSEP)
-            elif self.token.type == TokenType.NUM or self.token.type == TokenType.REAL:
+            elif self.token.type == TokenType.NUM or self.token.type == TokenType.FLOAT:
                 self.match(self.token.type, t)
             elif self.token.type == TokenType.ID:
                 self.match(TokenType.ID, t)
@@ -520,7 +521,7 @@ class Parser:
     
     def checkInput(self, first, follow):
         if self.token.type not in first:
-            newError = Error(f'unexpected token {self.token}', self.lex.lineo)
+            newError = Error('Syntax',f'unexpected token {self.token}', self.lex.lineo)
             if self.error.message != newError.message and self.error.lineo != newError.lineo:
                 self.error = newError
                 self.syntaxError(self.error.message, self.lex.lineo)

@@ -25,6 +25,7 @@ class TokenType(enum.Enum):
     DEC = 18
     #ASSIGN
     ASSIGN = 19
+    INCDECASSIGN = 190
     #SEMICOLON
     SEMI = 20
     #PARENTHESIS
@@ -52,6 +53,13 @@ class TokenType(enum.Enum):
     #END OF FILE
     EOF = 200
     ERROR = 400
+    
+    # FIXME: Debug for semantic
+    def __repr__(self):
+        return str(self.name)
+    
+    def __str__(self):
+        return str(self.name)
 
 class STATE(enum.Enum):
     START = 0

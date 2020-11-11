@@ -1,65 +1,39 @@
 package com.uaa.idejavafx.controllers;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.uaa.classes.FileHelper;
-import com.uaa.classes.LineError;
+import com.google.gson.*;
+import com.uaa.classes.*;
 import com.uaa.idejavafx.Main;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import static java.lang.Character.isDigit;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.IntFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javafx.concurrent.Task;
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
+import java.nio.file.*;
+import java.time.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.*;
+import java.util.regex.*;
+import javafx.concurrent.*;
+import javafx.fxml.*;
+import javafx.geometry.*;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.SingleSelectionModel;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.*;
-import org.fxmisc.richtext.model.StyleSpans;
-import org.fxmisc.richtext.model.StyleSpansBuilder;
-import org.fxmisc.richtext.model.TwoDimensional;
+import org.fxmisc.richtext.model.*;
 import org.reactfx.Subscription;
 
 public class PrimaryController implements Initializable {
     @FXML
     private CodeArea codeText, outputArea, errorArea, lexicalArea;
     @FXML
-    private TreeView<String> syntacticTree;
+    private TreeView<String> syntacticTree, semanticTree;
     @FXML
-    private Tab tabTitle, outputTab, errorTab, lexicalTab, syntacticTab;
+    private Tab tabTitle, outputTab, errorTab, lexicalTab, syntacticTab, semanticTab;
     @FXML
     private Label currentLabel, totalLabel, infoLabel;
     @FXML
@@ -68,6 +42,8 @@ public class PrimaryController implements Initializable {
     private TabPane statusTabPane, compilerTabPane;
     @FXML
     private AnchorPane pane;
+    @FXML
+    private TableView symtab;
     
     private final FileHelper fileHelper = new FileHelper();
     
@@ -126,6 +102,35 @@ public class PrimaryController implements Initializable {
         this.setScrollPane(this.codeText, (AnchorPane) this.codeText.getParent(), ScrollBarPolicy.ALWAYS, ScrollBarPolicy.ALWAYS);
         this.setScrollPane(this.outputArea, (AnchorPane) this.outputArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
         this.setScrollPane(this.errorArea, (AnchorPane) this.errorArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
+        
+        
+        symtab.getColumns().clear();
+        TableColumn<HashItem, String> varNameColumn = new TableColumn<>("Name");
+        varNameColumn.setCellValueFactory(new PropertyValueFactory<>("varName"));
+
+        TableColumn<HashItem, String> typeColumn = new TableColumn<>("Type");
+        typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        
+        TableColumn<HashItem, Integer> registerColumn = new TableColumn<>("# Register");
+        registerColumn.setCellValueFactory(new PropertyValueFactory<>("register"));
+        
+        TableColumn<HashItem, ArrayList<String>> linesColumn = new TableColumn<>("Lines");
+        linesColumn.setCellValueFactory(new PropertyValueFactory<>("lines"));
+        
+        TableColumn<HashItem, ArrayList<String>> valColumn = new TableColumn<>("Value");
+        valColumn.setCellValueFactory(new PropertyValueFactory<>("val"));
+       
+        varNameColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));
+        typeColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));    
+        registerColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));
+        linesColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));   
+        valColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));   
+        
+        symtab.getColumns().add(varNameColumn);
+        symtab.getColumns().add(valColumn);
+        symtab.getColumns().add(typeColumn);
+        symtab.getColumns().add(registerColumn);
+        symtab.getColumns().add(linesColumn);
     }
     
     private void setScrollPane(CodeArea area, AnchorPane pane, ScrollBarPolicy vBar, ScrollBarPolicy hBar){
@@ -281,6 +286,14 @@ public class PrimaryController implements Initializable {
         Main.setCompilerDir();
     }
     
+    private boolean compilationErrors() {
+        return !errorArea.getText().equals("");
+    }
+    
+    private void cannotCompile(String unable, String cause){
+        this.errorArea.appendText("Cannot compile "+unable+", "+cause+ " errors\n"); 
+    }
+    
     private void lexOutput(){
         SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
         selectionModel.select(outputTab);
@@ -293,7 +306,7 @@ public class PrimaryController implements Initializable {
                 if (s.contains("ERROR")) {
                     Integer l = Integer.parseInt(lastLine.split(" ")[0]);
                     Integer c = Integer.parseInt(lastLine.split(" ")[1]);
-                    errors += s.replace("<ERROR: ", "Error con \"").replace(">", "\"") + " línea: " + l + " columna: " + c + "\n";
+                    errors += s.replace(">", "\"").replace("<ERROR: ", ">>>Error with \"") + " line: " + l + " col: " + c + "\n";
                     lineErrors.add(l - 1);
                 } else if (s.contains("<")) {
                     output += lastLine + "\n" + s + "\n";
@@ -313,17 +326,39 @@ public class PrimaryController implements Initializable {
         this.initLineNumberFactory(lineErrors);
     }
     
-    private void syntaxOutput(){
-        //aqui tambien hay que abrir el json y cargar el arbol al tree view
+    private static boolean isInt(String strNum) {
+        if (strNum == null) {
+            return false;
+        }
+        try {
+            int d = Integer.parseInt(strNum);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+    
+    private void getOutput(String ofile, TreeView<String> treeView, String tree){
         SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
         selectionModel.select(outputTab);
         String s, errors = "";
         List<Integer> lineErrors = new ArrayList<>();
-        Path syntaxo = Paths.get(this.fileHelper.getFile().getParent() + "/compilador/syntactic.o").toAbsolutePath();
+        Path syntaxo = Paths.get(this.fileHelper.getFile().getParent() + "/compilador/"+ofile).toAbsolutePath();
         try (Scanner scanner = new Scanner(syntaxo).useDelimiter("\n")) {
             while (scanner.hasNext()) {
                 s = scanner.next();
                 errors += s + "\n";
+                String line = "";
+                int i = 0;
+                while(i < s.length() && !isDigit(s.charAt(i))) i++;
+                while(i < s.length() && isDigit(s.charAt(i))){
+                    line += s.charAt(i);
+                    i++;
+                }
+                if(isInt(line)){
+                    lineErrors.add(Integer.parseInt(line) - 1);
+                }
+                
             }
         } catch (IOException ex) { }
         if (!errors.isEmpty()) {
@@ -332,21 +367,41 @@ public class PrimaryController implements Initializable {
             selectionModel.select(outputTab);
             outputArea.appendText("\nbuild: ok");
         }
-
-        // Read json file
-        JsonParser parser = new JsonParser();
-        try {
-            JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/tree.json"));
-            // Set tree root
-            this.syntacticTree.setRoot(createTree(json, null));
-
-        } catch(FileNotFoundException ex) {}
-
+        if(tree != null){
+            JsonParser parser = new JsonParser();
+            try {
+                JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/"+tree));
+                treeView.setRoot(createTree(json, null, ofile.equals("semantic.o"), ""));
+            } catch(FileNotFoundException ex) {}
+        }
         errorArea.appendText(errors);
         this.initLineNumberFactory(lineErrors);
     }
+    
+    private void populateHashTable() {
+        JsonParser parser = new JsonParser();
+        try {
+            JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/symtab.json"));
+            JsonObject table = json.getAsJsonObject().getAsJsonObject("vars");
+            int i = 1;
+            for(Map.Entry<String, JsonElement> entry : table.entrySet()){
+                String varName = entry.getKey();
+                JsonObject vals = entry.getValue().getAsJsonObject();
+                Object obj = vals.get("val");
+                String val = obj.toString();
+                String type = vals.get("type").getAsString();
+                ArrayList<Integer> lines = new ArrayList<>();
+                JsonArray arrLines = vals.get("lines").getAsJsonArray();
+                for(int j=0;j<arrLines.size();j++) {
+                    Integer l = arrLines.get(j).getAsInt();
+                    lines.add(l);
+                }
+                this.symtab.getItems().add(new HashItem(varName, type, i++,lines, val));
+            }
+        } catch(FileNotFoundException ex) {}
+    }
 
-    private TreeItem<String> createTree(JsonElement element, TreeItem<String> parent) {
+    private TreeItem<String> createTree(JsonElement element, TreeItem<String> parent, Boolean semantic, String carry) {
         if (element.isJsonNull())
             // Empty
             return new TreeItem<String>("Null");
@@ -355,10 +410,20 @@ public class PrimaryController implements Initializable {
             // Get property
             JsonPrimitive property = element.getAsJsonPrimitive();
             String value = property.getAsString();
-            String parts [] = value.split("->");
+            String parts [] = value.split(" => ");
+
+            if (parts.length > 1)
+                value = parts[1].substring(0, parts[1].length() - 1);
+
+            if (semantic) {
+                String excludes [] = {"main", "STMT-LIST", "STMT", "SENT-LIST", "SENT", "SELECT", "if", "then", "BLOCK", "else", "REPEAT", "do", "ITERATION", "while", "SENT-CIN", "cin", "until", "SENT-COUT", "COUT"};
+
+                if (!Arrays.asList(excludes).contains(value))
+                    value += carry;
+            }
 
             // Create item
-            return new TreeItem<String>((parts.length > 1) ? parts[1] : value);
+            return new TreeItem<String>(value);
         }
         else if (element.isJsonArray()) {
             // Get json array
@@ -367,7 +432,7 @@ public class PrimaryController implements Initializable {
             // Iterate over object childs
             for (JsonElement child : children)
                 // Add child to parent
-                parent.getChildren().add(createTree(child, null));
+                parent.getChildren().add(createTree(child, null, semantic, ""));
 
             return null;
         }
@@ -383,15 +448,22 @@ public class PrimaryController implements Initializable {
                 JsonElement doc = property.getValue();
 
                 if (doc.isJsonPrimitive())
-                    item = createTree(doc, null);
+                    item = createTree(doc, null, semantic, "");
                 else {
                     // Get value from data object
                     if (key.equals("sdt") && doc.isJsonObject()) {
                         JsonObject data = doc.getAsJsonObject();
-                        item = createTree(data.get("value"), null);
+
+                        if (semantic) {
+                            JsonElement type = data.get("type"), val = data.get("val");
+                            String tipo = type.isJsonNull() ? "null" : type.getAsJsonPrimitive().getAsString(), valor = val.isJsonNull() ? "null" : val.getAsJsonPrimitive().getAsString();
+                            carry = " (Tipo: " + tipo + ", Valor: " + valor + ")";
+                        }
+                        else carry = "";
+                        item = createTree(data.get("data"), null, semantic, carry);
                     }
                     // Create childs
-                    else createTree(doc, item);
+                    else createTree(doc, item, semantic, "");
                 }
             }
             item.setExpanded(true);
@@ -422,19 +494,42 @@ public class PrimaryController implements Initializable {
     }
     
     @FXML
-    private void runLexical(){
+    private boolean runLexical(){
         this.clean();
-        this.prepare("Compilando lexico...", "", this.lexicalTab);
+        this.prepare("Compiling lexical...", "", this.lexicalTab);
+        this.syntacticTree.setRoot(null);
+        this.symtab.getItems().clear();
         this.lexOutput();
+        return true;
     }
     
     @FXML
-    private void runSyntactic(){
-        //this.clean();
-        this.runLexical();
-        this.prepare("\nCompilando sintactico...", "-p", this.syntacticTab);
-        //this.lexOutput();
-        this.syntaxOutput();
+    private boolean runSyntactic(){
+        if(this.runLexical()){
+            if(this.compilationErrors()) {
+                this.cannotCompile("syntatic", "lexical");
+                return false;
+            }
+            this.prepare("\nCompiling syntactic...", "-p", this.syntacticTab);
+            this.getOutput("syntactic.o", this.syntacticTree, "ast.json");
+            return true;
+        }
+        return false;
+    }
+    
+    @FXML
+    private boolean runSemantic(){
+        if(this.runSyntactic()){
+            if(this.compilationErrors()) {
+                this.cannotCompile("semantic", "syntatic");
+                return false;
+            }
+            this.prepare("\nCompiling semantic...", "-p -a", this.semanticTab);
+            this.getOutput("semantic.o", this.semanticTree, "ast.json");
+            this.populateHashTable();
+            return true;
+        }
+        return false;
     }
     
     private void prepare(String message, String extraParams, Tab tab){

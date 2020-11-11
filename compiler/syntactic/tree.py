@@ -1,19 +1,19 @@
-from enumTypes import TokenType
-import sys, os
+import sys, os, json
 sys.path.append(os.path.relpath("../lexic"))
 
 from pathlib import Path
-from collections import deque 
+from collections import deque, namedtuple
 from lexic.token import Token
 from semantic.node import SDT
 from semantic.symtab import SymTable
+from enumTypes import TokenType
 
 def printSpaces(Stack):
     print("", end='')
     for _ in range(len(Stack)-1):
         print("\t", end='')
 
-class ATS(dict):
+class CST(dict):
     def __init__(self, sdt = ''):
         super().__init__()
         self.__dict__ = self
@@ -21,22 +21,21 @@ class ATS(dict):
         self.children = []
 
     def add_child(self, node):
-        assert isinstance(node, ATS)
+        assert isinstance(node, CST)
         self.children.append(node)
 
     def build(self, directory):
-        binary = str(self).replace("'", "\"")
         Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
         with open(directory+"/compilador/tree.json", "w") as fileJSON:
-            fileJSON.write(binary)
+            fileJSON.write(json.dumps(self, default = str, indent = 3))
 
-    def printPreOrder(self): 
-        Stack = deque([]) 
-        Preorder = [] 
+    def printPreOrder(self):
+        Stack = deque([])
+        Preorder = []
         print(self.sdt)
         Preorder.append(self)
         Brackets = list()
-        Stack.append(self) 
+        Stack.append(self)
         while len(Stack)>0:
             flag = 0
             if len((Stack[len(Stack)-1]).children)== 0: 
@@ -61,24 +60,85 @@ class ATS(dict):
                 print("}")
                 Stack.pop()
 
-    # TODO: Función a utilizar temporalmente por ahora. Aquí va el switch :v
-    def traverse(self, symtab: SymTable) -> None:
-        # print (self.sdt)
 
-        if isinstance(self.sdt.data, Token):
-            if self.sdt.data.type in [TokenType.INT, TokenType.FLOAT, TokenType.BOOLEAN]:
-                self.sdt.type = self.sdt.data.type
+class AST(dict):
+    def __init__(self, sdt: SDT):
+        super().__init__()
+        self.__dict__ = self
+        self.sdt = sdt
+        self.children = []
 
-            elif self.sdt.data.type == TokenType.ID:
-                if symtab.lookup(self.sdt.data.value) is None:
-                    if self.sdt.type is not None:
-                        symtab.insert(self.sdt)
+    def build(self, directory):
+        Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
+        with open(directory+"/compilador/ast.json", "w") as fileJSON:
+            fileJSON.write(json.dumps(self, default = str, indent = 3))
+
+    def add_child(self, node):
+        assert isinstance(node, AST)
+        self.children.append(node)
+
+def buildFromCST(root: CST):
+    Stack = deque([])
+    index = 0
+    Pair = namedtuple("Pair", ["node", "index"])
+    node = AST(None)
+    ASTStack = deque([])
+
+    numeros = [TokenType.NUM, TokenType.FLOAT]
+    noterminales = ["FACTOR", "EXP", "SIMPLE-EXP", "TERM", "RELATION", "SENT-ASSIGN"]
+    arithmethicOperators = [TokenType.PLUS, TokenType.MINUS, TokenType.MULT, TokenType.DIV]
+    logicalOperators = [TokenType.BT, TokenType.LT, TokenType.BOREQ, TokenType.LOREQ, TokenType.EQ, TokenType.DIFF]
+
+    while root is not None or len(Stack) > 0:
+        if root is not None:
+            Stack.append(Pair(root, index))
+            index = 0
+            root = root.children[0] if len(root.children) >= 1 else None
+        else:
+            condition = True
+            while condition:
+                temp = Stack[len(Stack)-1] 
+                node = AST(temp.node.sdt)
+                Stack.pop()
+                if isinstance(temp.node.sdt.data, Token):
+                    token = temp.node.sdt.data
+                    if token.type == TokenType.ID:
+                        ASTStack.append(node)
+                    elif token.type in numeros:
+                        ASTStack.append(node)
+                    elif token.type in arithmethicOperators+logicalOperators+[TokenType.ASSIGN, TokenType.INCDECASSIGN]:
+                        operator = node
+                        b = ASTStack[len(ASTStack)-1]
+                        ASTStack.pop()
+                        a = ASTStack[len(ASTStack)-1]
+                        ASTStack.pop()
+                        operator.add_child(a)
+                        operator.add_child(b)
+                        ASTStack.append(operator)
                     else:
-                        # throw error
-                        pass
+                        childs = len(temp.node.children)
+                        auxStack = deque([])
+                        for _ in range(childs):
+                            auxStack.append(ASTStack[len(ASTStack)-1])
+                            ASTStack.pop()
+                        while len(auxStack)>0:
+                            node.add_child(auxStack[len(auxStack)-1])
+                            auxStack.pop()
+                        ASTStack.append(node)
+                elif temp.node.sdt.data in noterminales:
+                    pass
                 else:
-                    symtab.insert(self.sdt)
-
-        for child in self.children:
-            child.sdt.type = self.sdt.type
-            child.traverse(symtab)
+                    childs = len(temp.node.children)
+                    auxStack = deque([])
+                    for _ in range(childs):
+                        auxStack.append(ASTStack[len(ASTStack)-1])
+                        ASTStack.pop()
+                    while len(auxStack)>0:
+                        node.add_child(auxStack[len(auxStack)-1])
+                        auxStack.pop()
+                    ASTStack.append(node)
+                condition = len(Stack)>0 and temp.index == len(Stack[len(Stack)-1].node.children) - 1
+            if len(Stack) > 0:
+                index = temp.index + 1
+                root = Stack[len(Stack)-1].node.children[index]
+    return node

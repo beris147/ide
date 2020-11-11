@@ -119,7 +119,7 @@
                         </Button>
                         <Button fx:id="lexicalButton" mnemonicParsing="false" onAction="#runLexical" text="Léxico" />
                         <Button mnemonicParsing="false" onAction="#runSyntactic" text="Sintáctico" />
-                        <Button mnemonicParsing="false" text="Semántico" />
+                        <Button mnemonicParsing="false" onAction="#runSemantic" text="Semántico" />
                         <SplitMenuButton mnemonicParsing="false" onAction="#run" text="run">
                           <items>
                             <MenuItem mnemonicParsing="false" text="Compilar" />
@@ -179,11 +179,11 @@
                                              </children></AnchorPane>
                                     </content>
                                   </Tab>
-                                    <Tab text="Semántico">
+                                    <Tab fx:id="semanticTab" text="Semántico">
                                       <content>
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <CodeArea prefHeight="301.6" prefWidth="184.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                 <TreeView fx:id="semanticTree" prefHeight="295.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                              </children>
                                           </AnchorPane>
                                       </content>
@@ -192,7 +192,7 @@
                                       <content>
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <TableView prefHeight="301.6" prefWidth="184.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                <TableView fx:id="symtab" prefHeight="301.6" prefWidth="184.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                   <columns>
                                                     <TableColumn prefWidth="75.0" text="C1" />
                                                     <TableColumn prefWidth="75.0" text="C2" />
