@@ -473,6 +473,8 @@ public class PrimaryController implements Initializable {
     private boolean runLexical(){
         this.clean();
         this.prepare("Compiling lexical...", "", this.lexicalTab);
+        this.syntacticTree.setRoot(null);
+        this.symtab.getItems().clear();
         this.lexOutput();
         return true;
     }
