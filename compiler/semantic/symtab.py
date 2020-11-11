@@ -43,7 +43,8 @@ class SymTable(dict):
     # Remove the line of present var
     def removeLine(self, sdt: SDT):
         name = sdt.data.value
-        assert name in self.vars
+        if name not in self.vars:
+            return
         # Add line
         self.vars[name]['lines'].remove(sdt.data.lineo)
 

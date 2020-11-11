@@ -3,7 +3,7 @@ from lexic.lex import Lex
 from enumTypes import TokenType
 from syntactic.parser import Parser
 from semantic.analyzer import Analyzer
-
+"""
 def str2bool(v):
     if isinstance(v, bool):
        return v
@@ -50,6 +50,7 @@ else:
     if args.analyze:
         analyzer = Analyzer(tree, dir, args.traceAnalysis)
         analyzer.analyze()
+    tree.build(parser.directory)
 
 """
 lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)

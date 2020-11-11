@@ -68,62 +68,77 @@ class AST(dict):
         self.sdt = sdt
         self.children = []
 
-    def add_child(self, node: SDT):
-        assert isinstance(node, SDT)
+    def build(self, directory):
+        Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
+        with open(directory+"/compilador/ast.json", "w") as fileJSON:
+            fileJSON.write(json.dumps(self, default = str, indent = 3))
+
+    def add_child(self, node):
+        assert isinstance(node, AST)
         self.children.append(node)
 
-    def buildFromCST(self, root: CST):
-        Stack = deque([])
-        index = 0
-        Pair = namedtuple("Pair", ["node", "index"])
+def buildFromCST(root: CST):
+    Stack = deque([])
+    index = 0
+    Pair = namedtuple("Pair", ["node", "index"])
+    node = AST(None)
+    ASTStack = deque([])
 
-        ASTStack = deque([])
+    numeros = [TokenType.NUM, TokenType.FLOAT]
+    noterminales = ["FACTOR", "EXP", "SIMPLE-EXP", "TERM", "RELATION", "SENT-ASSIGN"]
+    arithmethicOperators = [TokenType.PLUS, TokenType.MINUS, TokenType.MULT, TokenType.DIV]
+    logicalOperators = [TokenType.BT, TokenType.LT, TokenType.BOREQ, TokenType.LOREQ, TokenType.EQ, TokenType.DIFF]
 
-        numeros = [TokenType.NUM, TokenType.FLOAT]
-        noterminales = ["FACTOR", "EXP", "SIMPLE-EXP", "TERM", "RELATION"]
-        arithmethicOperators = [TokenType.PLUS, TokenType.MINUS, TokenType.MULT, TokenType.DIV]
-        logicalOperators = [TokenType.BT, TokenType.LT, TokenType.BOREQ, TokenType.LOREQ, TokenType.EQ, TokenType.DIFF]
-
-
-        while root is not None or len(Stack) > 0:
-            if root is not None:
-                Stack.append(Pair(root, index))
-                index = 0
-                root = root.children[0] if len(root.children) >= 1 else None
-            else:
-                condition = True
-                while condition:
-                    temp = Stack[len(Stack)-1] 
-                    Stack.pop()
-                    if isinstance(temp.node.sdt.data, Token):
-                        token = temp.node.sdt.data
-                        if token.type == TokenType.ID:
-                            ASTStack.append(AST(temp.node.sdt))
-                        elif token.type in numeros:
-                            ASTStack.append(AST(temp.node.sdt))
-                        elif token.type in arithmethicOperators+logicalOperators+[TokenType.ASSIGN, TokenType.INCDECASSIGN]:
-                            operator = AST(temp.node.sdt)
-                            b = ASTStack[len(ASTStack)-1]
-                            ASTStack.pop()
-                            a = ASTStack[len(ASTStack)-1]
-                            ASTStack.pop()
-                            operator.add_child(a)
-                            operator.add_child(b)
-                            ASTStack.append(operator)
-                    elif temp.node.sdt.data in noterminales:
-                        pass
-                    elif temp.node.sdt.data == "SELECT" or temp.node.sdt.data == "ITERATION" or temp.node.sdt.data == "REPEAT":
-                        parent = AST(temp.node.sdt)
+    while root is not None or len(Stack) > 0:
+        if root is not None:
+            Stack.append(Pair(root, index))
+            index = 0
+            root = root.children[0] if len(root.children) >= 1 else None
+        else:
+            condition = True
+            while condition:
+                temp = Stack[len(Stack)-1] 
+                node = AST(temp.node.sdt)
+                Stack.pop()
+                if isinstance(temp.node.sdt.data, Token):
+                    token = temp.node.sdt.data
+                    if token.type == TokenType.ID:
+                        ASTStack.append(node)
+                    elif token.type in numeros:
+                        ASTStack.append(node)
+                    elif token.type in arithmethicOperators+logicalOperators+[TokenType.ASSIGN, TokenType.INCDECASSIGN]:
+                        operator = node
+                        b = ASTStack[len(ASTStack)-1]
+                        ASTStack.pop()
+                        a = ASTStack[len(ASTStack)-1]
+                        ASTStack.pop()
+                        operator.add_child(a)
+                        operator.add_child(b)
+                        ASTStack.append(operator)
+                    else:
                         childs = len(temp.node.children)
                         auxStack = deque([])
                         for _ in range(childs):
                             auxStack.append(ASTStack[len(ASTStack)-1])
                             ASTStack.pop()
                         while len(auxStack)>0:
-                            parent.add_child(auxStack[len(auxStack)-1])
+                            node.add_child(auxStack[len(auxStack)-1])
                             auxStack.pop()
-                    condition = len(Stack)>0 and temp.index == len(Stack[len(Stack)-1].node.children) - 1
-                if len(Stack) > 0:
-                    index = temp.index + 1
-                    root = Stack[len(Stack)-1].node.children[index]
-    
+                        ASTStack.append(node)
+                elif temp.node.sdt.data in noterminales:
+                    pass
+                else:
+                    childs = len(temp.node.children)
+                    auxStack = deque([])
+                    for _ in range(childs):
+                        auxStack.append(ASTStack[len(ASTStack)-1])
+                        ASTStack.pop()
+                    while len(auxStack)>0:
+                        node.add_child(auxStack[len(auxStack)-1])
+                        auxStack.pop()
+                    ASTStack.append(node)
+                condition = len(Stack)>0 and temp.index == len(Stack[len(Stack)-1].node.children) - 1
+            if len(Stack) > 0:
+                index = temp.index + 1
+                root = Stack[len(Stack)-1].node.children[index]
+    return node

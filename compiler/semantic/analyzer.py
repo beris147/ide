@@ -8,7 +8,7 @@ from lexic.token import Token
 from lexic.token import Token
 from semantic.node import SDT
 from error import Error
-from syntactic.tree import CST
+from syntactic.tree import CST, buildFromCST
 
 class Analyzer:
 
@@ -39,6 +39,8 @@ class Analyzer:
         if self.traceAnalysis:
             print(self.symtab)
         self.symtab.build(self.directory)
+        ast = buildFromCST(self.tree)
+        ast.build(self.directory)
         self.output.close()
         return self.tree
 
@@ -188,6 +190,8 @@ class Analyzer:
             val = a.sdt.val / b.sdt.val
         elif operation == TokenType.MOD:
             val = a.sdt.val % b.sdt.val
+        if type == TokenType.INT:
+            val = math.floor(val) if val >= 0 else math.ceil(val)
         updateSDT(node.sdt, type, val, a.sdt.lineo)
 
     def relationalOperations(self, node: CST, operation: TokenType):
