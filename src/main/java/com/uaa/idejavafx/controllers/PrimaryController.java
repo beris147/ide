@@ -410,13 +410,17 @@ public class PrimaryController implements Initializable {
             // Get property
             JsonPrimitive property = element.getAsJsonPrimitive();
             String value = property.getAsString();
-            String parts [] = value.split("->");
+            String parts [] = value.split(" => ");
 
             if (parts.length > 1)
                 value = parts[1].substring(0, parts[1].length() - 1);
 
-            if (semantic)
+            if (semantic) {
+                String excludes [] = {"main", "STMT-LIST", "STMT", "SENT-LIST", "SENT", "SELECT", "if", "then", "BLOCK", "else", "REPEAT", "do", "ITERATION", "while", "SENT-CIN", "cin", "until", "SENT-COUT", "COUT"};
+
+                if (!Arrays.asList(excludes).contains(value))
                     value += carry;
+            }
 
             // Create item
             return new TreeItem<String>(value);
