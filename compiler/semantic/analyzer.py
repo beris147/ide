@@ -8,7 +8,7 @@ from lexic.token import Token
 from lexic.token import Token
 from semantic.node import SDT
 from error import Error
-from syntactic.tree import CST, buildFromCST
+from syntactic.tree import CST, AST, buildFromCST
 
 class Analyzer:
 
@@ -17,6 +17,7 @@ class Analyzer:
         self.symtab = SymTable()
         self.traceAnalysis = traceAnalysis
         self.directory = directory
+        self.astNode = AST(None)
         Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
         self.output = open(directory+"/compilador/semantic.o","w+")
         self.lastLineoError = 0
@@ -41,6 +42,7 @@ class Analyzer:
         self.symtab.build(self.directory)
         ast = buildFromCST(self.tree)
         ast.build(self.directory)
+        #self.astNode.build(self.directory)
         self.output.close()
         return self.tree
 
@@ -70,6 +72,11 @@ class Analyzer:
         arithmethicOperators = [TokenType.PLUS, TokenType.MINUS, TokenType.MULT, TokenType.DIV]
         logicalOperators = [TokenType.BT, TokenType.LT, TokenType.BOREQ, TokenType.LOREQ, TokenType.EQ, TokenType.DIFF]
 
+        ASTStack = deque([])
+
+        avoid = noterminales+["SENT-ASSIGN"]
+        push = numeros + [TokenType.ID]
+
         while root is not None or len(Stack) > 0:
             if root is not None:
                 propagate = SDT()
@@ -81,8 +88,21 @@ class Analyzer:
             else:
                 condition = True
                 while condition:
-                    temp = Stack[len(Stack)-1] 
+                    temp = Stack[len(Stack)-1]
+                    self.astNode = AST(temp.node.sdt) 
                     Stack.pop()
+                    if temp.node.sdt.data in push:
+                        ASTStack.append(self.astNode)
+                    elif temp.node.sdt.data not in avoid:
+                        childs = len(temp.node.children)
+                        auxStack = deque([])
+                        for _ in range(childs):
+                            auxStack.append(ASTStack[len(ASTStack)-1])
+                            ASTStack.pop()
+                        while len(auxStack)>0:
+                            self.astNode.add_child(auxStack[len(auxStack)-1])
+                            auxStack.pop()
+                        ASTStack.append(self.astNode)
                     if isinstance(temp.node.sdt.data, Token):
                         token = temp.node.sdt.data
                         if token.type == TokenType.ID:
@@ -140,12 +160,9 @@ class Analyzer:
             return
 
         if a.sdt.type == b.sdt.type:
-            val = math.floor(b.sdt.val) if a.sdt.type == TokenType.INT else b.sdt.val
-            if val < 0 and a.sdt.type == TokenType.INT:
-                val = val + 1
-            symtab.setAttr(a.sdt.data.value, "val", val)
+            symtab.setAttr(a.sdt.data.value, "val", b.sdt.val)
         elif a.sdt.type == TokenType.REAL:
-            symtab.setAttr(a.sdt.data.value, "val", b.sdt.val*1.0)
+            symtab.setAttr(a.sdt.data.value, "val", b.sdt.val)
         elif a.sdt.type is not None: #this makes no sense but ok
             self.semanticError(f'incompatible types {b.sdt.type} cannot be converted to {a.sdt.type}', a.sdt.lineo)
             updateSDT(node.sdt, TokenType.ERROR)
@@ -191,7 +208,7 @@ class Analyzer:
         elif operation == TokenType.MOD:
             val = a.sdt.val % b.sdt.val
         if type == TokenType.INT:
-            val = math.floor(val) if val >= 0 else math.ceil(val)
+            val = math.floor(val) if val > 0 else math.ceil(val)
         updateSDT(node.sdt, type, val, a.sdt.lineo)
 
     def relationalOperations(self, node: CST, operation: TokenType):

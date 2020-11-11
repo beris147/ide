@@ -507,7 +507,7 @@ public class PrimaryController implements Initializable {
                 return false;
             }
             this.prepare("\nCompiling syntactic...", "-p", this.syntacticTab);
-            this.getOutput("syntactic.o", this.syntacticTree, "tree.json");
+            this.getOutput("syntactic.o", this.syntacticTree, "ast.json");
             return true;
         }
         return false;
@@ -521,7 +521,7 @@ public class PrimaryController implements Initializable {
                 return false;
             }
             this.prepare("\nCompiling semantic...", "-p -a", this.semanticTab);
-            this.getOutput("semantic.o", this.semanticTree, "tree.json");
+            this.getOutput("semantic.o", this.semanticTree, "ast.json");
             this.populateHashTable();
             return true;
         }
