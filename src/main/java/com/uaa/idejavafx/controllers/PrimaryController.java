@@ -371,7 +371,7 @@ public class PrimaryController implements Initializable {
             JsonParser parser = new JsonParser();
             try {
                 JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/"+tree));
-                treeView.setRoot(createTree(json, null));
+                treeView.setRoot(createTree(json, null, ofile.equals("semantic.o"), ""));
             } catch(FileNotFoundException ex) {}
         }
         errorArea.appendText(errors);
@@ -401,7 +401,7 @@ public class PrimaryController implements Initializable {
         } catch(FileNotFoundException ex) {}
     }
 
-    private TreeItem<String> createTree(JsonElement element, TreeItem<String> parent) {
+    private TreeItem<String> createTree(JsonElement element, TreeItem<String> parent, Boolean semantic, String carry) {
         if (element.isJsonNull())
             // Empty
             return new TreeItem<String>("Null");
@@ -412,8 +412,14 @@ public class PrimaryController implements Initializable {
             String value = property.getAsString();
             String parts [] = value.split("->");
 
+            if (parts.length > 1)
+                value = parts[1].substring(0, parts[1].length() - 1);
+
+            if (semantic)
+                    value += carry;
+
             // Create item
-            return new TreeItem<String>((parts.length > 1) ? parts[1] : value);
+            return new TreeItem<String>(value);
         }
         else if (element.isJsonArray()) {
             // Get json array
@@ -422,7 +428,7 @@ public class PrimaryController implements Initializable {
             // Iterate over object childs
             for (JsonElement child : children)
                 // Add child to parent
-                parent.getChildren().add(createTree(child, null));
+                parent.getChildren().add(createTree(child, null, semantic, ""));
 
             return null;
         }
@@ -438,15 +444,22 @@ public class PrimaryController implements Initializable {
                 JsonElement doc = property.getValue();
 
                 if (doc.isJsonPrimitive())
-                    item = createTree(doc, null);
+                    item = createTree(doc, null, semantic, "");
                 else {
                     // Get value from data object
                     if (key.equals("sdt") && doc.isJsonObject()) {
                         JsonObject data = doc.getAsJsonObject();
-                        item = createTree(data.get("value"), null);
+
+                        if (semantic) {
+                            JsonElement type = data.get("type"), val = data.get("val");
+                            String tipo = type.isJsonNull() ? "null" : type.getAsJsonPrimitive().getAsString(), valor = val.isJsonNull() ? "null" : val.getAsJsonPrimitive().getAsString();
+                            carry = " (Tipo: " + tipo + ", Valor: " + valor + ")";
+                        }
+                        else carry = "";
+                        item = createTree(data.get("data"), null, semantic, carry);
                     }
                     // Create childs
-                    else createTree(doc, item);
+                    else createTree(doc, item, semantic, "");
                 }
             }
             item.setExpanded(true);
@@ -508,7 +521,7 @@ public class PrimaryController implements Initializable {
                 return false;
             }
             this.prepare("\nCompiling semantic...", "-p -a", this.semanticTab);
-            this.getOutput("semantic.o", this.semanticTree, null);
+            this.getOutput("semantic.o", this.semanticTree, "tree.json");
             this.populateHashTable();
             return true;
         }
