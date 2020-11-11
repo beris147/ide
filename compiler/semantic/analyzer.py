@@ -140,13 +140,16 @@ class Analyzer:
         if a.sdt.type == b.sdt.type:
             val = math.floor(b.sdt.val) if a.sdt.type == TokenType.INT else b.sdt.val
             symtab.setAttr(a.sdt.data.value, "val", val)
-        elif b.sdt.type == TokenType.BOOLEAN:
+        elif a.sdt.type is not None: #this makes no sense but ok
+            self.semanticError(f'incompatible types {b.sdt.type} cannot be converted to {a.sdt.type}', a.sdt.lineo)
+            updateSDT(node.sdt, TokenType.ERROR)
+        """elif b.sdt.type == TokenType.BOOLEAN:
             self.semanticError(f'incompatible types {b.sdt.type} cannot be converted to {a.sdt.type}', a.sdt.lineo)
             updateSDT(node.sdt, TokenType.ERROR)
         elif a.sdt.type == TokenType.REAL:
             symtab.setAttr(a.sdt.data.value, "val", b.sdt.val*1.0)
         elif a.sdt.type == TokenType.INT:
-            symtab.setAttr(a.sdt.data.value, "val", math.floor(b.sdt.val))
+            symtab.setAttr(a.sdt.data.value, "val", math.floor(b.sdt.val))"""
 
     def incdecAssignOperation(self, node: CST, symtab: SymTable):
         #a := a + 1
