@@ -115,7 +115,7 @@ class Parser:
     def parse(self):
         self.token = self.lex.getToken()
         tree = self.program(programFollow)
-        tree.build(self.directory)
+        # tree.build(self.directory)
         if self.traceParser:
             tree.printPreOrder()
         if self.token.type != TokenType.EOF:
