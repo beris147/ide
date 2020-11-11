@@ -14,14 +14,16 @@ import java.util.ArrayList;
 public class HashItem {
     String varName;
     String type;
-    int register;
+    Integer register;
     ArrayList<Integer> lines;
+    String val;
 
-    public HashItem(String varName, String type, int register, ArrayList<Integer> lines) {
+    public HashItem(String varName, String type, int register, ArrayList<Integer> lines, String val) {
         this.varName = varName;
         this.type = type;
         this.register = register;
         this.lines = lines;
+        this.val = val;
     }
 
     public String getVarName() {
@@ -54,6 +56,14 @@ public class HashItem {
 
     public void setLines(ArrayList<Integer> lines) {
         this.lines = lines;
+    }
+
+    public String getVal() {
+        return val;
+    }
+
+    public void setVal(String val) {
+        this.val = val;
     }
     
     

@@ -116,13 +116,18 @@ public class PrimaryController implements Initializable {
         
         TableColumn<HashItem, ArrayList<String>> linesColumn = new TableColumn<>("Lines");
         linesColumn.setCellValueFactory(new PropertyValueFactory<>("lines"));
+        
+        TableColumn<HashItem, ArrayList<String>> valColumn = new TableColumn<>("Value");
+        valColumn.setCellValueFactory(new PropertyValueFactory<>("val"));
        
         varNameColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));
         typeColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));    
         registerColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));
-        linesColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.4));   
+        linesColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));   
+        valColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));   
         
         symtab.getColumns().add(varNameColumn);
+        symtab.getColumns().add(valColumn);
         symtab.getColumns().add(typeColumn);
         symtab.getColumns().add(registerColumn);
         symtab.getColumns().add(linesColumn);
@@ -382,6 +387,7 @@ public class PrimaryController implements Initializable {
             for(Map.Entry<String, JsonElement> entry : table.entrySet()){
                 String varName = entry.getKey();
                 JsonObject vals = entry.getValue().getAsJsonObject();
+                String val = vals.get("val").getAsString();
                 String type = vals.get("type").getAsString();
                 ArrayList<Integer> lines = new ArrayList<>();
                 JsonArray arrLines = vals.get("lines").getAsJsonArray();
@@ -389,7 +395,7 @@ public class PrimaryController implements Initializable {
                     Integer l = arrLines.get(j).getAsInt();
                     lines.add(l);
                 }
-                this.symtab.getItems().add(new HashItem(varName, type, i++,lines ));
+                this.symtab.getItems().add(new HashItem(varName, type, i++,lines, val));
             }
         } catch(FileNotFoundException ex) {}
     }
