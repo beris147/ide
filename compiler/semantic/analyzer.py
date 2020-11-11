@@ -139,7 +139,11 @@ class Analyzer:
 
         if a.sdt.type == b.sdt.type:
             val = math.floor(b.sdt.val) if a.sdt.type == TokenType.INT else b.sdt.val
+            if val < 0 and a.sdt.type == TokenType.INT:
+                val = val + 1
             symtab.setAttr(a.sdt.data.value, "val", val)
+        elif a.sdt.type == TokenType.REAL:
+            symtab.setAttr(a.sdt.data.value, "val", b.sdt.val*1.0)
         elif a.sdt.type is not None: #this makes no sense but ok
             self.semanticError(f'incompatible types {b.sdt.type} cannot be converted to {a.sdt.type}', a.sdt.lineo)
             updateSDT(node.sdt, TokenType.ERROR)

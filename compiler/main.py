@@ -3,7 +3,7 @@ from lexic.lex import Lex
 from enumTypes import TokenType
 from syntactic.parser import Parser
 from semantic.analyzer import Analyzer
-
+"""
 def str2bool(v):
     if isinstance(v, bool):
        return v
@@ -55,8 +55,8 @@ else:
 lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)
 parser = Parser(lex, "/home/beristain/Documents/uaa/compis", True)
 tree = parser.parse()
-analyzer = Analyzer(tree)
-analyzer.traverse()
+analyzer = Analyzer(tree, "/home/beristain/Documents/uaa/compis", True)
+analyzer.analyze()
 #print(analyzer.tree)
 #print (analyzer.symtab)
 #"""
