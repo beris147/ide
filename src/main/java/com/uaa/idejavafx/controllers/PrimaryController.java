@@ -387,7 +387,8 @@ public class PrimaryController implements Initializable {
             for(Map.Entry<String, JsonElement> entry : table.entrySet()){
                 String varName = entry.getKey();
                 JsonObject vals = entry.getValue().getAsJsonObject();
-                String val = vals.get("val").getAsString();
+                Object obj = vals.get("val");
+                String val = obj.toString();
                 String type = vals.get("type").getAsString();
                 ArrayList<Integer> lines = new ArrayList<>();
                 JsonArray arrLines = vals.get("lines").getAsJsonArray();
