@@ -17,6 +17,9 @@ import javafx.fxml.*;
 import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.*;
 import org.fxmisc.flowless.VirtualizedScrollPane;
@@ -39,6 +42,8 @@ public class PrimaryController implements Initializable {
     private TabPane statusTabPane, compilerTabPane;
     @FXML
     private AnchorPane pane;
+    @FXML
+    private TableView symtab;
     
     private final FileHelper fileHelper = new FileHelper();
     
@@ -97,6 +102,30 @@ public class PrimaryController implements Initializable {
         this.setScrollPane(this.codeText, (AnchorPane) this.codeText.getParent(), ScrollBarPolicy.ALWAYS, ScrollBarPolicy.ALWAYS);
         this.setScrollPane(this.outputArea, (AnchorPane) this.outputArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
         this.setScrollPane(this.errorArea, (AnchorPane) this.errorArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
+        
+        
+        symtab.getColumns().clear();
+        TableColumn<HashItem, String> varNameColumn = new TableColumn<>("Name");
+        varNameColumn.setCellValueFactory(new PropertyValueFactory<>("varName"));
+
+        TableColumn<HashItem, String> typeColumn = new TableColumn<>("Type");
+        typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        
+        TableColumn<HashItem, Integer> registerColumn = new TableColumn<>("# Register");
+        registerColumn.setCellValueFactory(new PropertyValueFactory<>("register"));
+        
+        TableColumn<HashItem, ArrayList<String>> linesColumn = new TableColumn<>("Lines");
+        linesColumn.setCellValueFactory(new PropertyValueFactory<>("lines"));
+       
+        varNameColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));
+        typeColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));    
+        registerColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.2));
+        linesColumn.prefWidthProperty().bind(symtab.widthProperty().multiply(0.4));   
+        
+        symtab.getColumns().add(varNameColumn);
+        symtab.getColumns().add(typeColumn);
+        symtab.getColumns().add(registerColumn);
+        symtab.getColumns().add(linesColumn);
     }
     
     private void setScrollPane(CodeArea area, AnchorPane pane, ScrollBarPolicy vBar, ScrollBarPolicy hBar){
@@ -343,6 +372,27 @@ public class PrimaryController implements Initializable {
         errorArea.appendText(errors);
         this.initLineNumberFactory(lineErrors);
     }
+    
+    private void populateHashTable() {
+        JsonParser parser = new JsonParser();
+        try {
+            JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/symtab.json"));
+            JsonObject table = json.getAsJsonObject().getAsJsonObject("vars");
+            int i = 1;
+            for(Map.Entry<String, JsonElement> entry : table.entrySet()){
+                String varName = entry.getKey();
+                JsonObject vals = entry.getValue().getAsJsonObject();
+                String type = vals.get("type").getAsString();
+                ArrayList<Integer> lines = new ArrayList<>();
+                JsonArray arrLines = vals.get("lines").getAsJsonArray();
+                for(int j=0;j<arrLines.size();j++) {
+                    Integer l = arrLines.get(j).getAsInt();
+                    lines.add(l);
+                }
+                this.symtab.getItems().add(new HashItem(varName, type, i++,lines ));
+            }
+        } catch(FileNotFoundException ex) {}
+    }
 
     private TreeItem<String> createTree(JsonElement element, TreeItem<String> parent) {
         if (element.isJsonNull())
@@ -450,6 +500,7 @@ public class PrimaryController implements Initializable {
             }
             this.prepare("\nCompiling semantic...", "-p -a", this.semanticTab);
             this.getOutput("semantic.o", this.semanticTree, null);
+            this.populateHashTable();
             return true;
         }
         return false;
