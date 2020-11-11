@@ -2,10 +2,11 @@ import sys, os, math
 sys.path.append(os.path.relpath("../lexic"))
 
 from pathlib import Path
-from collections import deque
+from collections import deque, namedtuple
 from lexic.token import Token
 from semantic.node import SDT
 from semantic.symtab import SymTable
+from enumTypes import TokenType
 
 def printSpaces(Stack):
     print("", end='')
@@ -59,3 +60,71 @@ class CST(dict):
                 printSpaces(Stack)
                 print("}")
                 Stack.pop()
+
+
+class AST(dict):
+    def __init__(self, sdt: SDT):
+        super().__init__()
+        self.__dict__ = self
+        self.sdt = sdt
+        self.children = []
+
+    def add_child(self, node: SDT):
+        assert isinstance(node, SDT)
+        self.children.append(node)
+
+    def buildFromCST(self, root: CST):
+        Stack = deque([])
+        index = 0
+        Pair = namedtuple("Pair", ["node", "index"])
+
+        ASTStack = deque([])
+
+        numeros = [TokenType.NUM, TokenType.FLOAT]
+        noterminales = ["FACTOR", "EXP", "SIMPLE-EXP", "TERM", "RELATION"]
+        arithmethicOperators = [TokenType.PLUS, TokenType.MINUS, TokenType.MULT, TokenType.DIV]
+        logicalOperators = [TokenType.BT, TokenType.LT, TokenType.BOREQ, TokenType.LOREQ, TokenType.EQ, TokenType.DIFF]
+
+
+        while root is not None or len(Stack) > 0:
+            if root is not None:
+                Stack.append(Pair(root, index))
+                index = 0
+                root = root.children[0] if len(root.children) >= 1 else None
+            else:
+                condition = True
+                while condition:
+                    temp = Stack[len(Stack)-1] 
+                    Stack.pop()
+                    if isinstance(temp.node.sdt.data, Token):
+                        token = temp.node.sdt.data
+                        if token.type == TokenType.ID:
+                            ASTStack.append(AST(temp.node.sdt))
+                        elif token.type in numeros:
+                            ASTStack.append(AST(temp.node.sdt))
+                        elif token.type in arithmethicOperators+logicalOperators+[TokenType.ASSIGN, TokenType.INCDECASSIGN]:
+                            operator = AST(temp.node.sdt)
+                            b = ASTStack[len(ASTStack)-1]
+                            ASTStack.pop()
+                            a = ASTStack[len(ASTStack)-1]
+                            ASTStack.pop()
+                            operator.add_child(a)
+                            operator.add_child(b)
+                            ASTStack.append(operator)
+                    elif temp.node.sdt.data in noterminales:
+                        pass
+                    elif temp.node.sdt.data == "SELECT" or temp.node.sdt.data == "ITERATION" or temp.node.sdt.data == "REPEAT":
+                        parent = AST(temp.node.sdt)
+                        childs = len(temp.node.children)
+                        auxStack = deque([])
+                        for _ in range(childs):
+                            auxStack.append(ASTStack[len(ASTStack)-1])
+                            ASTStack.pop()
+                        while len(auxStack)>0:
+                            parent.add_child(auxStack[len(auxStack)-1])
+                            auxStack.pop()
+                    condition = len(Stack)>0 and temp.index == len(Stack[len(Stack)-1].node.children) - 1
+                if len(Stack) > 0:
+                    index = temp.index + 1
+                    root = Stack[len(Stack)-1].node.children[index]
+    

@@ -3,7 +3,7 @@ from lexic.lex import Lex
 from enumTypes import TokenType
 from syntactic.parser import Parser
 from semantic.analyzer import Analyzer
-"""
+
 def str2bool(v):
     if isinstance(v, bool):
        return v
