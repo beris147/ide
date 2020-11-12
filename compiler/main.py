@@ -2,6 +2,7 @@ import argparse
 from lexic.lex import Lex
 from enumTypes import TokenType
 from syntactic.parser import Parser
+from semantic.analyzer import Analyzer
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -19,6 +20,7 @@ parser.add_argument('-p', '--parser', type=str2bool, nargs='?', const=True, defa
 parser.add_argument('-a', '--analyze', type=str2bool, nargs='?', const=True, default=False, help='false for an only syntactic compiler')
 parser.add_argument('-S', '--traceScan', type=str2bool, nargs='?', const=True, default=False, help='print the scan tokens')
 parser.add_argument('-P', '--traceParser', type=str2bool, nargs='?', const=True, default=False, help='print the syntactic tree')
+parser.add_argument('-A', '--traceAnalysis', type=str2bool, nargs='?', const=True, default=False, help='print the analysis process')
 requiredNamed = parser.add_argument_group('required named arguments')
 requiredNamed.add_argument('-d', '--dir', help='main file directory', required=True)
 requiredNamed.add_argument('-f', '--file', help='main file name', required=True)
@@ -44,10 +46,19 @@ if args.parser == False:
             break
 else:
     parser = Parser(lex, dir, args.traceParser)
-    parser.parse()
+    tree = parser.parse()
+    if args.analyze:
+        analyzer = Analyzer(tree, dir, args.traceAnalysis)
+        analyzer.analyze()
+    tree.build(parser.directory)
+
 """
 lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)
 parser = Parser(lex, "/home/beristain/Documents/uaa/compis", True)
-parser.parse()
+tree = parser.parse()
+analyzer = Analyzer(tree, "/home/beristain/Documents/uaa/compis", True)
+analyzer.analyze()
+#print(analyzer.tree)
+#print (analyzer.symtab)
 #"""
 print("build: finshed")
