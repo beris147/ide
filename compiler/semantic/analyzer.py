@@ -153,7 +153,7 @@ class Analyzer:
         b = node.children[1]
 
         if b.sdt.val is None or a.sdt.type == TokenType.ERROR or b.sdt.type == TokenType.ERROR:
-            if b.sdt.val is None: #TODO: find the variable
+            if b.sdt.val is None:
                 if symtab.lookup(b.sdt.token.value):
                     self.semanticError(f'{b.sdt.token} variable is not initialized', b.sdt.lineo)
             updateSDT(node.sdt, TokenType.ERROR, None)
@@ -161,11 +161,16 @@ class Analyzer:
 
         if a.sdt.type == b.sdt.type:
             symtab.setAttr(a.sdt.data.value, "val", b.sdt.val)
+            updateSDT(node.sdt, b.sdt.type, b.sdt.val)
         elif a.sdt.type == TokenType.REAL:
             symtab.setAttr(a.sdt.data.value, "val", b.sdt.val)
+            updateSDT(node.sdt, b.sdt.type, b.sdt.val)
         elif a.sdt.type is not None: #this makes no sense but ok
             self.semanticError(f'incompatible types {b.sdt.type} cannot be converted to {a.sdt.type}', a.sdt.lineo)
             updateSDT(node.sdt, TokenType.ERROR)
+        
+        if a.sdt.type is None:
+            updateSDT(node.sdt, TokenType.ERROR, None)
         """elif b.sdt.type == TokenType.BOOLEAN:
             self.semanticError(f'incompatible types {b.sdt.type} cannot be converted to {a.sdt.type}', a.sdt.lineo)
             updateSDT(node.sdt, TokenType.ERROR)
