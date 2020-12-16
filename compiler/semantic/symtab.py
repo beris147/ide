@@ -28,7 +28,7 @@ class SymTable(dict):
     def insert(self, sdt: SDT) -> bool:
         name = sdt.data.value
         if name not in self.vars:
-            self.vars[name] = {'type': sdt.type, 'lines': [sdt.data.lineo], 'val': None}
+            self.vars[name] = {'type': sdt.type, 'lines': [sdt.data.lineo], 'val': None, 'register' : len(self.vars) + 1 }
             return True
         else:
             return False
