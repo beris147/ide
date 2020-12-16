@@ -383,11 +383,11 @@ public class PrimaryController implements Initializable {
         try {
             JsonElement json = parser.parse(new FileReader(this.fileHelper.getFile().getParent() + "/compilador/symtab.json"));
             JsonObject table = json.getAsJsonObject().getAsJsonObject("vars");
-            int i = 1;
-            for(Map.Entry<String, JsonElement> entry : table.entrySet()){
+            table.entrySet().forEach((Map.Entry<String, JsonElement> entry) -> {
                 String varName = entry.getKey();
                 JsonObject vals = entry.getValue().getAsJsonObject();
                 Object obj = vals.get("val");
+                Integer register = vals.get("register").getAsInt();
                 String val = obj.toString();
                 String type = vals.get("type").getAsString();
                 ArrayList<Integer> lines = new ArrayList<>();
@@ -396,8 +396,8 @@ public class PrimaryController implements Initializable {
                     Integer l = arrLines.get(j).getAsInt();
                     lines.add(l);
                 }
-                this.symtab.getItems().add(new HashItem(varName, type, i++,lines, val));
-            }
+                this.symtab.getItems().add(new HashItem(varName, type, register,lines, val));
+            });
         } catch(FileNotFoundException ex) {}
     }
 
