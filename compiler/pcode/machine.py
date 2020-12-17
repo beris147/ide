@@ -44,6 +44,7 @@ def executeInstruction(instruction: Instruction, codeStack: CodeStack) -> None:
         INSCode.STO.name: lambda: codeStack.sto(instruction),
         INSCode.STC.name: lambda: codeStack.stc(instruction),
         INSCode.LAB.name: lambda: codeStack.lab(instruction),
+        INSCode.RED.name: lambda: codeStack.red(instruction),
         #jumps instructions
         INSCode.JMP.name: lambda: codeStack.jmp(instruction),
         INSCode.JEQ.name: lambda: codeStack.jeq(instruction),

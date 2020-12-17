@@ -16,8 +16,9 @@ class INSCode(enum.Enum):
     JGR = 75
     JGE = 76
     WRT = 9
-    LAB = 10
-    END = 11
+    RED = 10
+    LAB = 11
+    END = 12
 
     def __repr__(self):
         return str(self.name)

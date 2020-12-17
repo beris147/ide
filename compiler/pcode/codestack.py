@@ -81,7 +81,7 @@ class CodeStack:
     def jeq(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data if a == b else self.counter
+        self.counter = self.labels[str(instruction.data)] if a == b else self.counter
     
     #jump if last two are not equal
     def jne(self, instruction: Instruction) -> None:
@@ -93,30 +93,39 @@ class CodeStack:
     def jls(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data if a < b else self.counter
+        self.counter = self.labels[str(instruction.data)] if a < b else self.counter
 
     #jump if a <= b
     def jle(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data if a <= b else self.counter
+        self.counter = self.labels[str(instruction.data)] if a <= b else self.counter
     
     #jump if a > b
     def jgt(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data if a > b else self.counter
+        self.counter = self.labels[str(instruction.data)] if a > b else self.counter
 
     #jump if a >= b
     def jge(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data if a >= b else self.counter
+        self.counter = self.labels[str(instruction.data)] if a >= b else self.counter
 
     #prints the top element on the stack
     def wrt(self, instruction: Instruction) -> None:
         a = self.pop()
         print(a)
+
+    #reads and intert on the top
+    def red(self, instruction: Instruction) -> None:
+        inp = getvalue(input())
+        while isfloat(inp) is False and isint(inp) is False:
+            print("Error reading from console, please try again")
+            inp = getvalue(input())
+        self.stack.append(inp)
+        self.sto(instruction)
 
     #arithmetic operations, self descriptive
     def add(self, instruction: Instruction) -> None:

@@ -6,7 +6,7 @@ from semantic.analyzer import Analyzer
 from codegen.codegen import CodeGen
 from syntactic.tree import buildFromCST
 
-#"""
+"""
 def str2bool(v):
     if isinstance(v, bool):
        return v
