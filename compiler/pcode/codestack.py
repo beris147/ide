@@ -102,7 +102,7 @@ class CodeStack:
         self.counter = self.labels[str(instruction.data)] if a <= b else self.counter
     
     #jump if a > b
-    def jgt(self, instruction: Instruction) -> None:
+    def jgr(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
         self.counter = self.labels[str(instruction.data)] if a > b else self.counter
