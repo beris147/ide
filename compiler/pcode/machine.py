@@ -11,6 +11,8 @@ class Machine:
 
     def run(self) -> None:
         instructions = []
+        labels = {}
+        i = 0
         for line in list(self.readfile()):
             parts = line.split('\t')
             if len(parts) > 2:
@@ -22,8 +24,11 @@ class Machine:
             instructions.append(instruction)
             if operation == INSCode.END.name:
                 break
+            if operation == INSCode.LAB.name:
+                labels[data] = i
+            i = i + 1   
         print("Starting p-code execution...")
-        codeStack = CodeStack()
+        codeStack = CodeStack(labels)
         i = 0
         while i < len(instructions) and instructions[i].operation != INSCode.END.name:
             instruction = instructions[i]
@@ -38,6 +43,7 @@ def executeInstruction(instruction: Instruction, codeStack: CodeStack) -> None:
         INSCode.LOD.name: lambda: codeStack.lod(instruction),
         INSCode.STO.name: lambda: codeStack.sto(instruction),
         INSCode.STC.name: lambda: codeStack.stc(instruction),
+        INSCode.LAB.name: lambda: codeStack.lab(instruction),
         #jumps instructions
         INSCode.JMP.name: lambda: codeStack.jmp(instruction),
         INSCode.JEQ.name: lambda: codeStack.jeq(instruction),

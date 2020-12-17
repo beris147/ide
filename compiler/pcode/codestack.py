@@ -21,31 +21,37 @@ def getvalue(data):
     return data
 
 class CodeStack:
-    def __init__(self) -> None:
+    def __init__(self, labels) -> None:
         self.stack = deque([])
         self.regs = {}
         self.base = 1
         self.counter = 0
+        self.labels = labels
 
+    #get top element in the stack, if its a variable get the value
     def pop(self):
         a = self.stack[len(self.stack) - 1]
         self.stack.pop()
         return self.regs[a] if isinstance(a, str) else a
     
+    #get top element in the stack as it is
     def pop_pure(self):
         a = self.stack[len(self.stack) - 1]
         self.stack.pop()
         return a
 
     #Instructions 
+    #loads a literal value, int or float
     def lit(self, instruction: Instruction) -> None:
         self.stack.append(instruction.data)
     
+    #loads a variable
     def lod(self, instruction: Instruction) -> None:
         if instruction.data not in self.regs:
             self.regs[instruction.data] = 0
         self.stack.append(instruction.data)
 
+    #stores the top element on the variable
     def sto(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop_pure()
@@ -54,6 +60,7 @@ class CodeStack:
         else:
             print("Error storing " + str(instruction.data) + " at " + str(self.counter))
 
+    #stores the top, but we push the value to the stack before making changes 
     def stc(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop_pure()
@@ -63,50 +70,55 @@ class CodeStack:
         else:
             print("Error storing " + str(instruction.data) + " at " + str(self.counter))
 
+    def lab(self, instruction: Instruction) -> None:
+        pass
+
+    #jump to label
     def jmp(self, instruction: Instruction) -> None:
-        self.counter = instruction.data - 1
+        self.counter = self.labels[str(instruction.data)]
 
     #jump if last two are equal
     def jeq(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data-1 if a == b else self.counter 
+        self.counter = instruction.data if a == b else self.counter
     
     #jump if last two are not equal
     def jne(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data-1 if a != b else self.counter
+        self.counter = self.labels[str(instruction.data)] if a != b else self.counter
 
     #jump if a < b
     def jls(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data-1 if a < b else self.counter
+        self.counter = instruction.data if a < b else self.counter
 
     #jump if a <= b
     def jle(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data-1 if a <= b else self.counter
+        self.counter = instruction.data if a <= b else self.counter
     
     #jump if a > b
     def jgt(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data-1 if a > b else self.counter
+        self.counter = instruction.data if a > b else self.counter
 
     #jump if a >= b
     def jge(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
-        self.counter = instruction.data-1 if a >= b else self.counter
+        self.counter = instruction.data if a >= b else self.counter
 
+    #prints the top element on the stack
     def wrt(self, instruction: Instruction) -> None:
         a = self.pop()
         print(a)
 
-    #arithmetic operations
+    #arithmetic operations, self descriptive
     def add(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
@@ -133,7 +145,7 @@ class CodeStack:
         a = self.pop()
         self.stack.append(a%b)
 
-    #boolean operations
+    #boolean operations, self descriptive
     def eql(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop()
