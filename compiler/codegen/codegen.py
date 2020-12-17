@@ -49,6 +49,7 @@ class CodeGen:
             TokenType.LOREQ: 'JGR',
             TokenType.BT: 'JLE',
             TokenType.BOREQ: 'JLS',
+            TokenType.DIFF: 'JEQ',
         }[x]
 
     def conditional_label_switch(self, x: TokenType) -> str:
