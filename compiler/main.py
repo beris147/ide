@@ -3,7 +3,10 @@ from lexic.lex import Lex
 from enumTypes import TokenType
 from syntactic.parser import Parser
 from semantic.analyzer import Analyzer
+from codegen.codegen import CodeGen
+from syntactic.tree import buildFromCST
 
+"""
 def str2bool(v):
     if isinstance(v, bool):
        return v
@@ -21,6 +24,8 @@ parser.add_argument('-a', '--analyze', type=str2bool, nargs='?', const=True, def
 parser.add_argument('-S', '--traceScan', type=str2bool, nargs='?', const=True, default=False, help='print the scan tokens')
 parser.add_argument('-P', '--traceParser', type=str2bool, nargs='?', const=True, default=False, help='print the syntactic tree')
 parser.add_argument('-A', '--traceAnalysis', type=str2bool, nargs='?', const=True, default=False, help='print the analysis process')
+parser.add_argument('-c', '--codegen', type=str2bool, nargs='?', const=True, default=False, help='true to execute codegen')
+parser.add_argument('-C', '--compile', type=str2bool, nargs='?', const=True, default=False, help='true to execute the generated code')
 requiredNamed = parser.add_argument_group('required named arguments')
 requiredNamed.add_argument('-d', '--dir', help='main file directory', required=True)
 requiredNamed.add_argument('-f', '--file', help='main file name', required=True)
@@ -50,6 +55,9 @@ else:
     if args.analyze:
         analyzer = Analyzer(tree, dir, args.traceAnalysis)
         analyzer.analyze()
+    else:
+        ast = buildFromCST(tree)
+        ast.build(parser.directory)
     tree.build(parser.directory)
 
 """
@@ -57,7 +65,10 @@ lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)
 parser = Parser(lex, "/home/beristain/Documents/uaa/compis", True)
 tree = parser.parse()
 analyzer = Analyzer(tree, "/home/beristain/Documents/uaa/compis", True)
-analyzer.analyze()
+ast = analyzer.analyze()
+codegen = CodeGen("/home/beristain/Documents/uaa/compis", "pruebas.txt", ast, analyzer.symtab)
+print("\n\n\n\ncodegen\n\n")
+codegen.run()
 #print(analyzer.tree)
 #print (analyzer.symtab)
 #"""

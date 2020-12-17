@@ -9,7 +9,12 @@ class INSCode(enum.Enum):
     CAL = 5
     INT = 6
     JMP = 7
-    JPC = 8
+    JEQ = 71
+    JNE = 72
+    JLS = 73
+    JLE = 74
+    JGR = 75
+    JGE = 76
     WRT = 9
     END = 10
 

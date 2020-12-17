@@ -1,112 +1,165 @@
 from instruction import Instruction
+from collections import deque
+
+def isfloat(data):
+    try:
+        float(data)
+        return True
+    except ValueError:
+        return False
+
+def isint(data):
+    try:
+        int(data)
+        return True
+    except ValueError:
+        return False
+
+def getvalue(data):
+    if isfloat(data) or isint(data):
+        return float(data) if "." in data else int(data)
+    return data
 
 class CodeStack:
     def __init__(self) -> None:
-        self.stack = [None]*2048
+        self.stack = deque([])
+        self.regs = {}
         self.base = 1
-        self.top = 0
         self.counter = 0
+
+    def pop(self):
+        a = self.stack[len(self.stack) - 1]
+        self.stack.pop()
+        return self.regs[a] if isinstance(a, str) else a
+    
+    def pop_pure(self):
+        a = self.stack[len(self.stack) - 1]
+        self.stack.pop()
+        return a
 
     #Instructions 
     def lit(self, instruction: Instruction) -> None:
-        self.top = self.top + 1
-        self.stack[self.top] = instruction.data
+        self.stack.append(instruction.data)
     
     def lod(self, instruction: Instruction) -> None:
-        self.top = self.top + 1
-        loc = self.getBase(instruction.level) + instruction.data
-        self.stack[self.top] = self.stack[loc]
+        if instruction.data not in self.regs:
+            self.regs[instruction.data] = 0
+        self.stack.append(instruction.data)
 
     def sto(self, instruction: Instruction) -> None:
-        loc = self.getBase(instruction.level) + instruction.data
-        self.stack[loc] = self.stack[self.top]
-        self.top = self.top - 1
+        b = self.pop()
+        a = self.pop_pure()
+        if isinstance(a, str):
+            self.regs[a] = b
+        else:
+            print("Error storing " + str(instruction.data) + " at " + str(self.counter))
 
     def stc(self, instruction: Instruction) -> None:
-        loc = self.getBase(instruction.level) + instruction.data
-        self.stack[loc] = self.stack[self.top]
-
-    def cal(self, instruction: Instruction) -> None:
-        self.stack[self.top+1] = self.getBase(instruction.level)
-        self.stack[self.top+2] = self.base
-        self.stack[self.top+3] = self.counter
-        self.base = self.top+1
-        self.counter = instruction.data
-    
-    def my_int(self, instruction: Instruction) -> None:
-        self.top = instruction.data
+        b = self.pop()
+        a = self.pop_pure()
+        if isinstance(a, str):
+            self.stack.append(self.regs[a])
+            self.regs[a] = b
+        else:
+            print("Error storing " + str(instruction.data) + " at " + str(self.counter))
 
     def jmp(self, instruction: Instruction) -> None:
-        self.counter = instruction.data-1
+        self.counter = instruction.data - 1
+
+    #jump if last two are equal
+    def jeq(self, instruction: Instruction) -> None:
+        b = self.pop()
+        a = self.pop()
+        self.counter = instruction.data-1 if a == b else self.counter 
     
-    def jpc(self, instruction: Instruction) -> None:
-        if(self.stack[self.top] == 0):
-            self.counter = instruction.data - 1
-        self.top = self.top - 1
+    #jump if last two are not equal
+    def jne(self, instruction: Instruction) -> None:
+        b = self.pop()
+        a = self.pop()
+        self.counter = instruction.data-1 if a != b else self.counter
+
+    #jump if a < b
+    def jls(self, instruction: Instruction) -> None:
+        b = self.pop()
+        a = self.pop()
+        self.counter = instruction.data-1 if a < b else self.counter
+
+    #jump if a <= b
+    def jle(self, instruction: Instruction) -> None:
+        b = self.pop()
+        a = self.pop()
+        self.counter = instruction.data-1 if a <= b else self.counter
+    
+    #jump if a > b
+    def jgt(self, instruction: Instruction) -> None:
+        b = self.pop()
+        a = self.pop()
+        self.counter = instruction.data-1 if a > b else self.counter
+
+    #jump if a >= b
+    def jge(self, instruction: Instruction) -> None:
+        b = self.pop()
+        a = self.pop()
+        self.counter = instruction.data-1 if a >= b else self.counter
 
     def wrt(self, instruction: Instruction) -> None:
-        loc = self.getBase(instruction.level) + instruction.data
-        print(self.stack[loc])
- 
-    #Operations 
-    def rtn(self, instruction: Instruction) -> None:
-        self.top = self.base - 1
-        self.counter = self.stack[self.top+3]
-        self.base = self.stack[self.top+2]
-    
-    def neg(self, instruction: Instruction) -> None:
-        self.stack[self.top] = self.stack[self.top]*-1
+        a = self.pop()
+        print(a)
 
+    #arithmetic operations
     def add(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] += self.stack[self.top+1]
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a+b)
     
     def sub(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] -= self.stack[self.top+1]
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a-b)
     
     def mul(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] *= self.stack[self.top+1]
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a*b)
 
     def div(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        isint = "." not in str(self.stack[self.top])
-        self.stack[self.top] /= self.stack[self.top+1]
-        if isint:
-            self.stack[self.top] = int(self.stack[self.top])
+        b = self.pop()
+        a = self.pop()
+        res = a/b if "." in str(a) else int(a/b)
+        self.stack.append(res)
 
     def mod(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] %= self.stack[self.top+1]
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a%b)
 
+    #boolean operations
     def eql(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] = self.stack[self.top] == self.stack[self.top+1]
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a == b)
     
     def neq(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] = self.stack[self.top] != self.stack[self.top+1]
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a != b)
 
     def lss(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] = self.stack[self.top] < self.stack[self.top+1]
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a < b)
 
     def leq(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] = self.stack[self.top] <= self.stack[self.top+1]
-    
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a <= b)
+
     def gtr(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] = self.stack[self.top] > self.stack[self.top+1]
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a > b)
 
-    def geq(self, instruction: Instruction) -> None:
-        self.top = self.top - 1
-        self.stack[self.top] = self.stack[self.top] >= self.stack[self.top+1]
-
-    def getBase(self, level) -> int:
-        newBase = self.base
-        while (level>0):
-            newBase = self.stack[newBase]
-            level = level - 1
-        return newBase
+    def gre(self, instruction: Instruction) -> None:
+        b = self.pop()
+        a = self.pop()
+        self.stack.append(a >= b)

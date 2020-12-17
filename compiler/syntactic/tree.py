@@ -77,7 +77,7 @@ class AST(dict):
         assert isinstance(node, AST)
         self.children.append(node)
 
-def buildFromCST(root: CST):
+def buildFromCST(root: CST) -> AST:
     Stack = deque([])
     index = 0
     Pair = namedtuple("Pair", ["node", "index"])

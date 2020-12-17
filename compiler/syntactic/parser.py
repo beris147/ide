@@ -441,7 +441,7 @@ class Parser:
                     parent.add_child(aux)
                     parent.add_child(self.term(termFollow))
                 else:
-                    t = inc_dec(self.last, self.last.type == TokenType.INC)
+                    parent = inc_dec(self.last, type == TokenType.INC)
                     self.match(self.token.type)
             t.add_child(parent)
             self.checkInput(follow, first)

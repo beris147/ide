@@ -44,7 +44,8 @@ class Analyzer:
         ast.build(self.directory)
         #self.astNode.build(self.directory)
         self.output.close()
-        return self.tree
+        #return self.tree
+        return ast
 
     def initizalizeStmtList(self, node: CST, symtab: SymTable):
         if isinstance(node.sdt.data, Token):
