@@ -61,9 +61,12 @@ class CodeGen:
 
     def instruction_operations(self, token: Token) -> None:
         if token.type == TokenType.ID:
-            self.log(f'LOD\t{token.value}')
+            type = 'float' if self.symtab.getAttr(token.value, 'type') == TokenType.REAL else 'int'
+            self.log(f'LOD\t{type}\t{token.value}')
         elif token.type == TokenType.NUM:
-            self.log(f'LIT\t{token.value}')
+            self.log(f'LIT\tint\t{token.value}')
+        elif token.type == TokenType.FLOAT:
+            self.log(f'LIT\tfloat\t{token.value}')
         #arithmetic operations
         elif token.type == TokenType.PLUS:
             self.log("ADD")
@@ -119,11 +122,10 @@ class CodeGen:
             self.whilelevelstack.append(astlevel)
             self.log(f'LAB\tWHILE{self.whilecounter}')
             self.sentstack.append(TokenType.WHILE)
-            
 
     def token_operations(self, token: Token, astlevel: int) -> None:
         conditional_tokens = [TokenType.LT, TokenType.LOREQ, TokenType.EQ, TokenType.BOREQ, TokenType.BT, TokenType.DIFF]
-        instruction_tokens = [TokenType.ID, TokenType.NUM, TokenType.PLUS, TokenType.MINUS, TokenType.MULT, TokenType.DIV, TokenType.MOD, TokenType.ASSIGN, TokenType.INCDECASSIGN]
+        instruction_tokens = [TokenType.ID, TokenType.NUM, TokenType.FLOAT, TokenType.PLUS, TokenType.MINUS, TokenType.MULT, TokenType.DIV, TokenType.MOD, TokenType.ASSIGN, TokenType.INCDECASSIGN]
         conditional_sent_tokens = [TokenType.IF, TokenType.ELSE, TokenType.END, TokenType.DO, TokenType.WHILE]
         if token.type in instruction_tokens:
             self.instruction_operations(token)

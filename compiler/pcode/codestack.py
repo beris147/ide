@@ -32,7 +32,11 @@ class CodeStack:
     def pop(self):
         a = self.stack[len(self.stack) - 1]
         self.stack.pop()
-        return self.regs[a] if isinstance(a, str) else a
+        if isinstance(a, str):
+            val = self.regs[a]['value']
+            return float(val) if self.regs[a]['type'] == 'float' else int(val)
+        else:
+            return a
     
     #get top element in the stack as it is
     def pop_pure(self):
@@ -48,25 +52,27 @@ class CodeStack:
     #loads a variable
     def lod(self, instruction: Instruction) -> None:
         if instruction.data not in self.regs:
-            self.regs[instruction.data] = 0
+            val = 0.0 if instruction.type == 'float' else 0
+            self.regs[instruction.data] = {'value': val, 'type': instruction.type}
         self.stack.append(instruction.data)
+        pass
 
     #stores the top element on the variable
     def sto(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop_pure()
         if isinstance(a, str):
-            self.regs[a] = b
+            self.regs[a]['value'] = b
         else:
-            print("Error storing " + str(instruction.data) + " at " + str(self.counter))
+            print("Error storing " + str(instruction.data) + " at instruction " + str(self.counter))
 
     #stores the top, but we push the value to the stack before making changes 
     def stc(self, instruction: Instruction) -> None:
         b = self.pop()
         a = self.pop_pure()
         if isinstance(a, str):
-            self.stack.append(self.regs[a])
-            self.regs[a] = b
+            self.stack.append(self.regs[a]['value'])
+            self.regs[a]['value'] = b
         else:
             print("Error storing " + str(instruction.data) + " at " + str(self.counter))
 
@@ -120,10 +126,13 @@ class CodeStack:
 
     #reads and intert on the top
     def red(self, instruction: Instruction) -> None:
+        a = self.stack[len(self.stack) - 1]
         inp = getvalue(input())
-        while isfloat(inp) is False and isint(inp) is False:
-            print("Error reading from console, please try again")
+        while isfloat(inp) is False and isint(inp) is False or "." in str(inp) and self.regs[a]['type'] == 'int':
+            print("Error, type not expected, please try again")
             inp = getvalue(input())
+        if "." in str(inp):
+            inp = float(inp)
         self.stack.append(inp)
         self.sto(instruction)
 

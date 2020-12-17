@@ -15,12 +15,17 @@ class Machine:
         i = 0
         for line in list(self.readfile()):
             parts = line.split('\t')
-            if len(parts) > 2:
+            if len(parts) > 3:
                 print("Error with " + line)
                 break
             operation = parts[0].split('\n')[0]
-            data = getvalue(parts[1].split('\n')[0]) if len(parts) > 1 else None
-            instruction = Instruction(operation, data)
+            type = None
+            if(operation == INSCode.LOD.name or operation == INSCode.LIT.name):
+                type = getvalue(parts[1].split('\n')[0])
+                data = getvalue(parts[2].split('\n')[0])
+            else:
+                data = getvalue(parts[1].split('\n')[0]) if len(parts) > 1 else None
+            instruction = Instruction(operation, data, type)
             instructions.append(instruction)
             if operation == INSCode.END.name:
                 break
