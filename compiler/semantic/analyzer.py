@@ -127,6 +127,8 @@ class Analyzer:
                             propagate = temp.node.sdt
                         elif token.type == TokenType.ASSIGN:
                             self.assignOperation(temp.node, symtab)
+                        elif token.type == TokenType.CIN:
+                            self.allowVar(temp.node, symtab)
                         elif token.type == TokenType.INCDECASSIGN:
                             self.incdecAssignOperation(temp.node, symtab)
                             if propagate.val is not None:
@@ -184,6 +186,15 @@ class Analyzer:
             symtab.setAttr(a.sdt.data.value, "val", b.sdt.val*1.0)
         elif a.sdt.type == TokenType.INT:
             symtab.setAttr(a.sdt.data.value, "val", math.floor(b.sdt.val))"""
+
+    def allowVar(self, node: CST, symtab: SymTable):
+        # cin a;
+        if (len(node.children) > 0):
+            a = node.children[0]
+            _id = a.sdt.data.value
+
+            if symtab.lookup(_id) and symtab.getAttr(_id, "val") is None:
+                symtab.setAttr(_id, "val", 0)
 
     def incdecAssignOperation(self, node: CST, symtab: SymTable):
         #a := a + 1 or a := a - 1
