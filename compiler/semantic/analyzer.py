@@ -129,6 +129,10 @@ class Analyzer:
                             self.assignOperation(temp.node, symtab)
                         elif token.type == TokenType.INCDECASSIGN:
                             self.incdecAssignOperation(temp.node, symtab)
+                            if temp.node.children[1].sdt.token.type == TokenType.PLUS:
+                                propagate.val = propagate.val - 1
+                            else:
+                                propagate.val = propagate.val + 1
                     elif temp.node.sdt.data in noterminales:
                         updateSDT(temp.node.sdt, propagate.type, propagate.val, propagate.lineo, token)
                     elif temp.node.sdt.data == "SELECT" or temp.node.sdt.data == "ITERATION":
@@ -181,7 +185,7 @@ class Analyzer:
             symtab.setAttr(a.sdt.data.value, "val", math.floor(b.sdt.val))"""
 
     def incdecAssignOperation(self, node: CST, symtab: SymTable):
-        #a := a + 1
+        #a := a + 1 or a := a - 1
         a = node.children[0]
         self.assignOperation(node, symtab)
         symtab.removeLine(a.sdt)
