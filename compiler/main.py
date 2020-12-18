@@ -64,7 +64,7 @@ else:
         codegen.run()
     if args.run:
         pythonCall = f'python3 {sys.path[0]}/pcode/pcode.py {dir}/compilador/pcode.o'
-        subprocess.call(['terminal', '-e', pythonCall])
+        subprocess.call(['gnome-terminal', '-e', pythonCall])
     tree.build(parser.directory)
 
 """

@@ -29,11 +29,12 @@ import org.reactfx.Subscription;
 
 public class PrimaryController implements Initializable {
     @FXML
-    private CodeArea codeText, outputArea, errorArea, lexicalArea;
+    private CodeArea codeText, outputArea, errorArea, lexicalArea, pcodeArea;
     @FXML
     private TreeView<String> syntacticTree, semanticTree;
     @FXML
-    private Tab tabTitle, outputTab, errorTab, lexicalTab, syntacticTab, semanticTab;
+    private Tab tabTitle, outputTab, errorTab, lexicalTab, 
+            syntacticTab, semanticTab, codegen;
     @FXML
     private Label currentLabel, totalLabel, infoLabel;
     @FXML
@@ -94,7 +95,7 @@ public class PrimaryController implements Initializable {
             })
             .subscribe(this::applyHighlight);
         
-        this.lexicalArea.setEditable(false);
+        this.lexicalArea.setEditable(false); this.pcodeArea.setEditable(false);
         this.outputArea.setEditable(false); this.outputArea.setWrapText(true);
         this.errorArea.setEditable(false); this.errorArea.setWrapText(true);
         this.initLineNumberFactory(new ArrayList<>());
@@ -102,6 +103,7 @@ public class PrimaryController implements Initializable {
         this.setScrollPane(this.codeText, (AnchorPane) this.codeText.getParent(), ScrollBarPolicy.ALWAYS, ScrollBarPolicy.ALWAYS);
         this.setScrollPane(this.outputArea, (AnchorPane) this.outputArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
         this.setScrollPane(this.errorArea, (AnchorPane) this.errorArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
+        this.setScrollPane(this.pcodeArea, (AnchorPane) this.pcodeArea.getParent(), ScrollBarPolicy.AS_NEEDED, ScrollBarPolicy.NEVER);
         
         
         symtab.getColumns().clear();
@@ -326,6 +328,18 @@ public class PrimaryController implements Initializable {
         this.initLineNumberFactory(lineErrors);
     }
     
+    private void runOutput(){
+        pcodeArea.replaceText("");
+        SingleSelectionModel<Tab> selectionModel = statusTabPane.getSelectionModel();
+        selectionModel.select(outputTab);
+        Path pcode = Paths.get(this.fileHelper.getFile().getParent() + "/compilador/pcode.o").toAbsolutePath();
+        try (Scanner scanner = new Scanner(pcode).useDelimiter("\n")) {
+            while (scanner.hasNext()) {
+                this.pcodeArea.appendText(scanner.next() + '\n');
+            }
+        } catch (IOException ex) { }
+    }
+    
     private static boolean isInt(String strNum) {
         if (strNum == null) {
             return false;
@@ -491,6 +505,7 @@ public class PrimaryController implements Initializable {
     private void clean(){
         errorArea.replaceText(""); 
         outputArea.replaceText("");
+        pcodeArea.replaceText("");
     }
     
     @FXML
@@ -527,6 +542,20 @@ public class PrimaryController implements Initializable {
             this.prepare("\nCompiling semantic...", "-p -a", this.semanticTab);
             this.getOutput("semantic.o", this.semanticTree, "ast.json");
             this.populateHashTable();
+            return true;
+        }
+        return false;
+    }
+    
+    @FXML
+    private boolean runCompiler(){
+        if(this.runSemantic()) {
+            if(this.compilationErrors()) {
+                this.cannotCompile("codegen", "semantic");
+                return false;
+            }
+            this.prepare("\nCompiling...", "-p -a -c -r", this.codegen);
+            this.runOutput();
             return true;
         }
         return false;

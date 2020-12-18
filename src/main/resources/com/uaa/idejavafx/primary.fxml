@@ -120,7 +120,7 @@
                         <Button fx:id="lexicalButton" mnemonicParsing="false" onAction="#runLexical" text="Léxico" />
                         <Button mnemonicParsing="false" onAction="#runSyntactic" text="Sintáctico" />
                         <Button mnemonicParsing="false" onAction="#runSemantic" text="Semántico" />
-                        <SplitMenuButton mnemonicParsing="false" onAction="#run" text="run">
+                        <SplitMenuButton mnemonicParsing="false" onAction="#runCompiler" text="run">
                           <items>
                             <MenuItem mnemonicParsing="false" text="Compilar" />
                             <MenuItem mnemonicParsing="false" text="Debug" />
@@ -202,11 +202,11 @@
                                           </AnchorPane>
                                       </content>
                                     </Tab>
-                                    <Tab text="Código Intermedio">
+                                    <Tab fx:id="codegen" text="Código Intermedio">
                                       <content>
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                              <children>
-                                                <CodeArea prefHeight="301.6" prefWidth="184.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                <CodeArea fx:id="pcodeArea" prefHeight="301.6" prefWidth="184.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                              </children>
                                           </AnchorPane>
                                       </content>
