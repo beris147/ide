@@ -170,7 +170,7 @@ class CodeGen:
                         if token.type == TokenType.COUT:
                             shouldcout = True
                         elif token.type == TokenType.CIN:
-                            shouldcin = True
+                            self.log("RED")
                         else:
                             self.token_operations(token, len(ASTstack))
                     ASTstack.pop()
@@ -178,6 +178,4 @@ class CodeGen:
                 if len(ASTstack) > 0:
                     index = temp.index + 1
                     root = ASTstack[len(ASTstack)-1].node.children[index]
-        if shouldcin:
-            self.log("RED")
         

@@ -68,12 +68,14 @@ else:
     tree.build(parser.directory)
 
 """
-lex = Lex("/home/beristain/Documents/uaa/compis", "pruebas.txt", True)
-parser = Parser(lex, "/home/beristain/Documents/uaa/compis", True)
+dir = "/home/beristain/Documents/uaa/compis/problemas"
+file = "4.tiny"
+lex = Lex(dir, file, True)
+parser = Parser(lex, dir, True)
 tree = parser.parse()
-analyzer = Analyzer(tree, "/home/beristain/Documents/uaa/compis", True)
+analyzer = Analyzer(tree, dir, True)
 ast = analyzer.analyze()
-codegen = CodeGen("/home/beristain/Documents/uaa/compis", "pruebas.txt", ast, analyzer.symtab)
+codegen = CodeGen(dir, file, ast, analyzer.symtab, True)
 print("\n\n\n\ncodegen\n\n")
 codegen.run()
 #print(analyzer.tree)

@@ -189,12 +189,18 @@ class Analyzer:
 
     def allowVar(self, node: CST, symtab: SymTable):
         # cin a;
+        shouldChange = False
+        if self.symtab.update == False:
+            self.symtab.set_update(True)
+            shouldChange = True
         if (len(node.children) > 0):
             a = node.children[0]
             _id = a.sdt.data.value
 
             if symtab.lookup(_id) and symtab.getAttr(_id, "val") is None:
                 symtab.setAttr(_id, "val", 0)
+        if shouldChange:
+            self.symtab.set_update(False)
 
     def incdecAssignOperation(self, node: CST, symtab: SymTable):
         #a := a + 1 or a := a - 1
