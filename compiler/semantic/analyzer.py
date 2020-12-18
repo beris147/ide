@@ -232,7 +232,7 @@ class Analyzer:
         elif operation == TokenType.MULT:
             val = a.sdt.val * b.sdt.val
         elif operation == TokenType.DIV:
-            val = a.sdt.val / b.sdt.val
+            val = a.sdt.val / b.sdt.val if b.sdt.val != 0 else 0
         elif operation == TokenType.MOD:
             val = a.sdt.val % b.sdt.val
         if type == TokenType.INT:
