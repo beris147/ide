@@ -82,6 +82,8 @@ public class PrimaryController implements Initializable {
         
         this.codeText.setParagraphGraphicFactory(LineNumberFactory.get(this.codeText));
         
+        this.pcodeArea.setParagraphGraphicFactory(LineNumberFactory.get(this.pcodeArea));
+        
         Subscription subscription = this.codeText.multiPlainChanges()
             .successionEnds(Duration.ofMillis(1))
             .supplyTask(this::buildHighlight)
