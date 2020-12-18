@@ -7,11 +7,12 @@ from semantic.symtab import SymTable
 from lexic.token import Token
 
 class CodeGen:
-    def __init__(self, directory: str, file: str, ast: AST, symtab: SymTable) -> None:
+    def __init__(self, directory: str, file: str, ast: AST, symtab: SymTable, trace) -> None:
         self.directory = directory
         self.file = file
         self.ast = ast
         self.symtab = symtab
+        self.trace = trace
         Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
         self.output = open(directory+"/compilador/pcode.o","w+")
         #if control on stack
@@ -27,6 +28,7 @@ class CodeGen:
         self.whilelevelstack = deque([])
         #sent control stack for conditions
         self.sentstack = deque([])
+
         
     def run(self):
         for child in self.ast.children:
@@ -39,7 +41,8 @@ class CodeGen:
         self.output.close()
 
     def log(self, line: str) -> None:
-        print(line)
+        if self.trace:
+            print(line)
         self.output.write(line + '\n')
 
     def conditional_operation_switch(self, x: TokenType) -> str:

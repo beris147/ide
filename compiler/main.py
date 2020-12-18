@@ -1,4 +1,4 @@
-import argparse
+import argparse, subprocess, os, sys
 from lexic.lex import Lex
 from enumTypes import TokenType
 from syntactic.parser import Parser
@@ -25,7 +25,8 @@ parser.add_argument('-S', '--traceScan', type=str2bool, nargs='?', const=True, d
 parser.add_argument('-P', '--traceParser', type=str2bool, nargs='?', const=True, default=False, help='print the syntactic tree')
 parser.add_argument('-A', '--traceAnalysis', type=str2bool, nargs='?', const=True, default=False, help='print the analysis process')
 parser.add_argument('-c', '--codegen', type=str2bool, nargs='?', const=True, default=False, help='true to execute codegen')
-parser.add_argument('-C', '--compile', type=str2bool, nargs='?', const=True, default=False, help='true to execute the generated code')
+parser.add_argument('-C', '--traceCodegen', type=str2bool, nargs='?', const=True, default=False, help='true to execute codegen')
+parser.add_argument('-r', '--run', type=str2bool, nargs='?', const=True, default=False, help='true to run code')
 requiredNamed = parser.add_argument_group('required named arguments')
 requiredNamed.add_argument('-d', '--dir', help='main file directory', required=True)
 requiredNamed.add_argument('-f', '--file', help='main file name', required=True)
@@ -54,10 +55,16 @@ else:
     tree = parser.parse()
     if args.analyze:
         analyzer = Analyzer(tree, dir, args.traceAnalysis)
-        analyzer.analyze()
+        ast = analyzer.analyze()
     else:
         ast = buildFromCST(tree)
         ast.build(parser.directory)
+    if args.codegen:
+        codegen = CodeGen(dir, file, ast, analyzer.symtab, args.traceCodegen)
+        codegen.run()
+    if args.run:
+        pythonCall = f'python3 {sys.path[0]}/pcode/pcode.py {dir}/compilador/pcode.o'
+        subprocess.call(['terminal', '-e', pythonCall])
     tree.build(parser.directory)
 
 """

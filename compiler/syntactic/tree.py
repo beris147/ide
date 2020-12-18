@@ -25,9 +25,10 @@ class CST(dict):
         self.children.append(node)
 
     def build(self, directory):
-        Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
+        pass
+        """Path(directory+"/compilador").mkdir(parents=True, exist_ok=True)
         with open(directory+"/compilador/tree.json", "w") as fileJSON:
-            fileJSON.write(json.dumps(self, default = str, indent = 3))
+            fileJSON.write(json.dumps(self, default = str, indent = 3))"""
 
     def printPreOrder(self):
         Stack = deque([])
